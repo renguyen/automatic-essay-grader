@@ -1,3 +1,6 @@
+# This is the baseline for our project. It uses a linear regression model
+# with word count and character count as features.
+
 import os
 import csv
 from collections import Counter, defaultdict
@@ -56,17 +59,6 @@ def word_count_featurizer(feature_counter, essay):
   '''
   word_count = len(essay.split(' '))
   feature_counter['word_count'] = word_count
-
-def featurize_data(essay):
-  '''
-  @return dict: feature vector representation of x.
-  Example: "The dog jumped" --> {'word_count': 3}
-  '''
-  features = Counter()
-  features['word_count'] = len(essay.split())
-  print(features)
-  return features
-  # return Counter(essay.split())
 
 def featurize_datasets(
       essays_set,

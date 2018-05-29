@@ -44,6 +44,7 @@ def avg_word_len_featurizer(feature_counter, essay):
     lengths += len(word)
   feature_counter['avg_word_len'] = lengths / len(words)
 
+
 def sentence_count_featurizer(feature_counter, essay):
   '''
   Adds sentence count as a feature.
@@ -54,6 +55,8 @@ def sentence_count_featurizer(feature_counter, essay):
   #  pdb.set_trace()
   sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
   feature_counter['sentence_count'] = sentences
+
+
 
 
 def featurize_datasets(

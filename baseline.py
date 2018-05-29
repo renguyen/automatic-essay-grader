@@ -100,6 +100,7 @@ def train_models(
   }       
 
 def predict(test_set, featurizers, vectorizer, model):
+  print('')
   test_X, _ = featurize_datasets(essays_set=test_set, featurizers=featurizers, vectorizer=vectorizer)
   return model.predict(test_X)
 

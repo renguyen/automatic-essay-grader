@@ -5,6 +5,7 @@
 These instructions will get you a copy of the project up and running on your local machine.
 
 ### Prerequisites
+Our project is built using Python 2.7 with these modules:
 * NumPy
 * SciPy
 * scikit-learn

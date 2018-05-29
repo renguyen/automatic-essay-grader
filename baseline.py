@@ -120,7 +120,7 @@ def main():
 
   train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)
   predictions = predict(test_set=X_test, featurizers=featurizers, vectorizer=train_result['vectorizer'], model=train_result['model'])
-  # print(predictions)
+  print(predictions)
 
   lab_enc = preprocessing.LabelEncoder()
   y_test = lab_enc.fit_transform(y_test)

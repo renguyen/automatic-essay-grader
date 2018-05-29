@@ -5,12 +5,14 @@ import numpy as np
 import nltk
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import BayesianRidge, LinearRegression 
-from sklearn.metrics import cohen_kappa_score
+from sklearn.metrics import cohen_kappa_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 import string
 import pdb
 import re
+import enchant
+from enchant.checker import SpellChecker
 
 from util import *
 
@@ -56,6 +58,16 @@ def sentence_count_featurizer(feature_counter, essay):
   sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
   feature_counter['sentence_count'] = sentences
 
+
+def spell_checker_featurizer(feature_counter, essay):
+
+  chkr = SpellChecker("en_UK","en_US")
+  chkr.set_text(essay)
+  counter = 0
+  for error in chkr: 
+    counter += 1
+  #print(counter)
+  feature_counter['spell_checker'] = counter
 
 
 
@@ -118,12 +130,15 @@ def main():
                   word_count_featurizer,
                   char_count_featurizer,
                   avg_word_len_featurizer,
-                  sentence_count_featurizer
+                  sentence_count_featurizer,
+                  spell_checker_featurizer
                 ]
 
   train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)
   predictions = predict(test_set=X_test, featurizers=featurizers, vectorizer=train_result['vectorizer'], model=train_result['model'])
-  # print(predictions)
+  print(mean_squared_error(y_test, predictions))
+
+  #print(predictions)
 
   lab_enc = preprocessing.LabelEncoder()
   y_test = lab_enc.fit_transform(y_test)

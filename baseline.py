@@ -1,6 +1,5 @@
 # This is the baseline for our project. It uses a linear regression model
 # with word count and character count as features.
-
 import os
 import csv
 from collections import Counter, defaultdict
@@ -13,9 +12,10 @@ from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 import string
 import pdb
+import re
 
 data_home = 'data'
-base_data_filename = os.path.join(data_home, 'training_copy.tsv')
+base_data_filename = os.path.join(data_home, 'training_set_rel3.tsv')
 
 essays = []
 avg_scores = []
@@ -81,10 +81,15 @@ def sentence_count_featurizer(feature_counter, essay):
   '''
   Adds sentence count as a feature.
   '''
-  try:
-    feature_counter['sentence_count'] = len(nltk.sent_tokenize(essay))
-  except UnicodeDecodeError, e:
-    pdb.set_trace()
+  #try:
+  #  feature_counter['sentence_count'] = len(nltk.sent_tokenize(essay))
+  #except UnicodeDecodeError, e:
+  #  pdb.set_trace()
+  sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
+  feature_counter['sentence_count'] = sentences
+
+
+
 
 def featurize_datasets(
       essays_set,

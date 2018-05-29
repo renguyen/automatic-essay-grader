@@ -32,7 +32,7 @@ def read_data():
   Each essay is represented by a tuple where the first element is a string concatenation
   of its essay id and essay set and the second is the text itself.
   '''
-  with open(base_data_filename, 'rt') as f:
+  with open(base_data_filename, mode='rt') as f:
     for line in csv.reader(f, delimiter='\t'):
       essay_id = line[0]
       essay_set = line[1]

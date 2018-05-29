@@ -5,18 +5,17 @@ import os
 import csv
 from collections import Counter, defaultdict
 import numpy as np 
+import nltk
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.linear_model import LinearRegression 
+from sklearn.linear_model import BayesianRidge, LinearRegression 
 from sklearn.metrics import cohen_kappa_score
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
+import string
 import pdb
 
-from util import *
-from feature_extractors import *
-
 data_home = 'data'
-base_data_filename = os.path.join(data_home, 'training_set_rel3.tsv')
+base_data_filename = os.path.join(data_home, 'training_copy.tsv')
 
 essays = []
 avg_scores = []
@@ -59,6 +58,33 @@ def word_count_featurizer(feature_counter, essay):
   '''
   word_count = len(essay.split(' '))
   feature_counter['word_count'] = word_count
+
+def char_count_featurizer(feature_counter, essay):
+  '''
+  Adds character count as a feature.
+  '''
+  feature_counter['character_count'] = len(essay)
+
+def avg_word_len_featurizer(feature_counter, essay):
+  '''
+  Adds the average length of the words as a feature.
+  '''
+  essay_without_puncutation = essay.translate(None, string.punctuation)
+  words = essay_without_puncutation.split()
+  lengths = 0.0
+  for word in words:
+    lengths += len(word)
+  feature_counter['avg_word_len'] = lengths / len(words)
+
+
+def sentence_count_featurizer(feature_counter, essay):
+  '''
+  Adds sentence count as a feature.
+  '''
+  try:
+    feature_counter['sentence_count'] = len(nltk.sent_tokenize(essay))
+  except UnicodeDecodeError, e:
+    pdb.set_trace()
 
 def featurize_datasets(
       essays_set,
@@ -118,7 +144,12 @@ def main():
   # Split data into test and train
   X_train, X_test, y_train, y_test = train_test_split(essays, avg_scores, train_size=0.7)
 
-  featurizers = [word_count_featurizer]
+  featurizers = [ 
+                  word_count_featurizer,
+                  char_count_featurizer,
+                  avg_word_len_featurizer,
+                  sentence_count_featurizer
+                ]
 
   train_result = train_models(featurizers, verbose=True)
   predictions = predict(featurizers, train_result['vectorizer'], train_result['model'])

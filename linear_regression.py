@@ -116,7 +116,17 @@ def pos_ngram_featurizer(feature_counter, essay, ngrams=2):
 
     feature_counter[key.strip()] += 1
 
-def essay_prompt_similarity(feature_counter, essay):
+def high_vocab_count_featurizer(feature_counter, essay):
+  '''
+  Adds number of "high vocabulary words" as a feature. 
+  TODO: determine high vocab words.
+  '''
+  pass
+
+def essay_prompt_similarity_featurizer(feature_counter, essay):
+  '''
+  Adds score for how similar an essay is to the score.
+  '''
   pass
 
 

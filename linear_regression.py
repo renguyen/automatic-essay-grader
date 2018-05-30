@@ -1,6 +1,7 @@
 # This is the baseline for our project. It uses a linear regression model
 # with word count and character count as features.
 from collections import Counter, defaultdict
+import datetime
 import numpy as np 
 from nltk import pos_tag
 from nltk.tokenize import sent_tokenize
@@ -107,8 +108,8 @@ def pos_ngram_featurizer(feature_counter, essay, ngrams=2):
   Adds part of speech ngrams as a feature.
   '''
   essay_without_punctuation = essay.translate(None, string.punctuation)
-  essay_without_punctuation = '<S> ' + essay_without_punctuation + ' </S>'
   pos_tags = pos_tag(essay_without_punctuation)
+  pos_tags = [('START', '<S>')] + pos_tags + [('END', '</S>')]
   for i in range(len(pos_tags) - 1):
     key = pos_tags[i][1] + ' '
     for j in range(1, ngrams):
@@ -136,6 +137,7 @@ def featurize_datasets(
       featurizers=[word_count_featurizer],
       vectorizer=None):
   # Create feature counters for each essay.
+
   essay_features = []
   for essay in essays_set:
     essay_id, essay_text = essay
@@ -149,6 +151,8 @@ def featurize_datasets(
   if vectorizer == None:
     vectorizer = DictVectorizer(sparse=True)
 
+  pdb.set_trace()
+
   essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
   return essay_features_matrix, vectorizer
 
@@ -160,8 +164,15 @@ def train_models(
         featurizers,
         model_factory=lambda: LinearRegression(),
         verbose=True):
-  if verbose: print('Featurizing')
+  if verbose: 
+    print('Featurizing')
+    featurizer_start = datetime.datetime.now()
   train_X, vectorizer = featurize_datasets(essays_set=train_essays, featurizers=featurizers)
+
+  if verbose:
+    featurizer_end = datetime.datetime.now()
+    print('Featurizing took %d seconds' % (featurizer_end - featurizer_start).seconds)
+
   
   if verbose: print('Training model')
   model = model_factory()
@@ -185,6 +196,12 @@ def main():
 
   # Split data into test and train
   X_train, X_test, y_train, y_test = train_test_split(essays, avg_scores, train_size=0.7)
+
+  # Sanity check
+  # X_train = [X_train[0]]
+  # X_test = [X_train[0]]
+  # y_train = [y_train[0]]
+  # y_test = [y_train[0]]
 
   featurizers = [ 
                   word_count_featurizer,

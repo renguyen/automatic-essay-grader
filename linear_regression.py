@@ -14,12 +14,18 @@ from sklearn import preprocessing
 import string
 import pdb
 import re
+import sys
+from tqdm import tqdm
 import enchant
 from enchant.checker import SpellChecker
 
 from util import *
 
 stopWords = set(stopwords.words('english'))
+
+# Removes the UnicodeDecodeError when using NLTK sent_tokenize
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 ###########################################################################
 #                                                                         #
@@ -55,12 +61,12 @@ def sentence_count_featurizer(feature_counter, essay):
   '''
   Adds sentence count as a feature.
   '''
-  #try:
-  #  feature_counter['sentence_count'] = len(nltk.sent_tokenize(essay))
-  #except UnicodeDecodeError, e:
-  #  pdb.set_trace()
-  sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
-  feature_counter['sentence_count'] = sentences
+  try:
+   feature_counter['sentence_count'] = len(sent_tokenize(essay))
+  except UnicodeDecodeError, e:
+   pdb.set_trace()
+  # sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
+  # feature_counter['sentence_count'] = sentences
 
 def spell_checker_featurizer(feature_counter, essay):
   chkr = SpellChecker("en_UK","en_US")
@@ -135,12 +141,14 @@ def essay_prompt_similarity_featurizer(feature_counter, essay):
 def featurize_datasets(
       essays_set,
       featurizers=[word_count_featurizer],
-      vectorizer=None):
+      vectorizer=None,
+      train=True):
   # Create feature counters for each essay.
 
   essay_features = []
-  for essay in essays_set:
-    essay_id, essay_text = essay
+  for e in tqdm(range(len(essays_set))):
+  # for essay in essays_set:
+    essay_id, essay_text = essays_set[e]
     feature_counter = defaultdict(float)
     for featurizer in featurizers:
       featurizer(feature_counter, essay_text)
@@ -151,9 +159,13 @@ def featurize_datasets(
   if vectorizer == None:
     vectorizer = DictVectorizer(sparse=True)
 
-  pdb.set_trace()
+  # pdb.set_trace()
 
-  essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
+  if train:
+    essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
+  else:
+    essay_features_matrix = vectorizer.transform(essay_features).toarray()
+
   return essay_features_matrix, vectorizer
 
 ###########################################################################
@@ -167,7 +179,7 @@ def train_models(
   if verbose: 
     print('Featurizing')
     featurizer_start = datetime.datetime.now()
-  train_X, vectorizer = featurize_datasets(essays_set=train_essays, featurizers=featurizers)
+  train_X, vectorizer = featurize_datasets(essays_set=train_essays, featurizers=featurizers, vectorizer=None, train=True)
 
   if verbose:
     featurizer_end = datetime.datetime.now()
@@ -186,7 +198,7 @@ def train_models(
   }       
 
 def predict(test_set, featurizers, vectorizer, model):
-  test_X, _ = featurize_datasets(essays_set=test_set, featurizers=featurizers, vectorizer=vectorizer)
+  test_X, _ = featurize_datasets(essays_set=test_set, featurizers=featurizers, vectorizer=vectorizer, train=False)
   return model.predict(test_X)
 
 ###########################################################################
@@ -195,7 +207,7 @@ def main():
   essays, avg_scores = read_data()
 
   # Split data into test and train
-  X_train, X_test, y_train, y_test = train_test_split(essays, avg_scores, train_size=0.7)
+  X_train, X_test, y_train, y_test = train_test_split(essays, avg_scores, train_size=0.9)
 
   # Sanity check
   # X_train = [X_train[0]]
@@ -203,12 +215,17 @@ def main():
   # y_train = [y_train[0]]
   # y_test = [y_train[0]]
 
+  # X_train = X_train[:500]
+  # X_test = X_test[:50]
+  # y_train = y_train[:500]
+  # y_test = y_test[:50]
+
   featurizers = [ 
                   word_count_featurizer,
                   char_count_featurizer,
                   avg_word_len_featurizer,
                   sentence_count_featurizer,
-                  # spell_checker_featurizer,
+                  spell_checker_featurizer,
                   punctuation_count_featurizer,
                   stopword_count_featurizer,
                   min_max_word_len_featurizer,
@@ -220,7 +237,9 @@ def main():
 
   print('loss: %f' % mean_squared_error(y_test, predictions))
 
-  #print(predictions)
+  # print('true | predicted')
+  # for i, prediction in enumerate(predictions):
+  #   print('%f | %f' % (y_test[i], prediction))
 
   lab_enc = preprocessing.LabelEncoder()
   y_test = lab_enc.fit_transform(y_test)

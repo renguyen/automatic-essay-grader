@@ -191,7 +191,7 @@ def main():
                   char_count_featurizer,
                   avg_word_len_featurizer,
                   sentence_count_featurizer,
-                  # spell_checker_featurizer,
+                  spell_checker_featurizer,
                   punctuation_count_featurizer,
                   stopword_count_featurizer,
                   min_max_word_len_featurizer,

@@ -183,7 +183,7 @@ def train_models(
 
   if verbose:
     featurizer_end = datetime.datetime.now()
-    print('Featurizing took %d seconds' % (featurizer_end - featurizer_start).seconds)
+    print('Featurizing took %d seconds \n' % (featurizer_end - featurizer_start).seconds)
 
   
   if verbose: print('Training model')
@@ -198,6 +198,8 @@ def train_models(
   }       
 
 def predict(test_set, featurizers, vectorizer, model):
+  print('Predicting')
+
   test_X, _ = featurize_datasets(essays_set=test_set, featurizers=featurizers, vectorizer=vectorizer, train=False)
   return model.predict(test_X)
 

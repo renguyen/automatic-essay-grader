@@ -228,10 +228,10 @@ def main():
   # y_train = [y_train[0]]
   # y_test = [y_train[0]]
 
-  X_train = X_train[:300]
-  X_test = X_test[:50]
-  y_train = y_train[:300]
-  y_test = y_test[:50]
+  # X_train = X_train[:300]
+  # X_test = X_test[:50]
+  # y_train = y_train[:300]
+  # y_test = y_test[:50]
 
   featurizers = [ 
                   word_count_featurizer,

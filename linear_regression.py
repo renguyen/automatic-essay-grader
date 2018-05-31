@@ -181,13 +181,12 @@ def featurize_datasets(
   if train:
     #scaler = preprocessing.StandardScaler()
     essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
-    print(essay_features_matrix)
-    scaler.fit(essay_features_matrix)
+    #scaler.fit(essay_features_matrix)
     
   else:
     #scaler = preprocessing.StandardScaler()
     essay_features_matrix = vectorizer.transform(essay_features).toarray()
-    essay_features_matrix = scaler.transform(essay_features_matrix)
+    #essay_features_matrix = scaler.transform(essay_features_matrix)
 
 
 

@@ -109,7 +109,7 @@ def min_max_word_len_featurizer(feature_counter, essay):
   feature_counter['min_word_len'] = min_len
   feature_counter['max_word_len'] = max_len
 
-def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True):
+def ngram_featurizer(feature_counter, essay, ngrams=4, plain=True, pos=True):
   '''
   Adds ngrams as a feature. plain=True will add normal word ngrams as a feature
   and pos=True will also add POS ngrams as a feature.
@@ -117,7 +117,7 @@ def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True):
   essay_without_punctuation = essay.translate(None, '!"#$%&\'()*+,-./:;<=>?[\\]^_`{|}~')
   pos_tags = pos_tag(essay_without_punctuation.split())
   pos_tags = [('<S>', '<S>')] + pos_tags + [('</S>', '</S>')]
-  for i in range(len(pos_tags) - 1):
+  for i in range(len(pos_tags) - (ngrams - 1)):
     norm_key = pos_tags[i][0] + ' '
     pos_key = pos_tags[i][1] + ' '
     for j in range(1, ngrams):
@@ -155,10 +155,8 @@ def featurize_datasets(
       vectorizer=None,
       train=True):
   # Create feature counters for each essay.
-
   essay_features = []
   for e in tqdm(range(len(essays_set))):
-  # for essay in essays_set:
     essay_id, essay_text = essays_set[e]
     feature_counter = defaultdict(float)
     for featurizer in featurizers:
@@ -169,8 +167,6 @@ def featurize_datasets(
   # If we haven't been given a Vectorizer, create one and fit it to all the feature counters.
   if vectorizer == None:
     vectorizer = DictVectorizer(sparse=True)
-
-  # pdb.set_trace()
 
   if train:
     essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
@@ -195,7 +191,6 @@ def train_models(
   if verbose:
     featurizer_end = datetime.datetime.now()
     print('Featurizing took %d seconds \n' % (featurizer_end - featurizer_start).seconds)
-
   
   if verbose: print('Training model')
   model = model_factory()
@@ -217,10 +212,12 @@ def predict(test_set, featurizers, vectorizer, model):
 ###########################################################################
 
 def main():
-  essays, avg_scores = read_data()
+  all_essays, all_scores = read_data()
+  essays = all_essays[1]  # only essays from set 1
+  scores = all_scores[1]
 
   # Split data into test and train
-  X_train, X_test, y_train, y_test = train_test_split(essays, avg_scores, train_size=0.9)
+  X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
   # Sanity check
   # X_train = [X_train[0]]
@@ -234,14 +231,14 @@ def main():
   # y_test = y_test[:50]
 
   featurizers = [ 
-                  word_count_featurizer,
-                  char_count_featurizer,
-                  avg_word_len_featurizer,
-                  sentence_count_featurizer,
-                  spell_checker_featurizer,
-                  punctuation_count_featurizer,
-                  stopword_count_featurizer,
-                  min_max_word_len_featurizer,
+                  # word_count_featurizer,
+                  # char_count_featurizer,
+                  # avg_word_len_featurizer,
+                  # sentence_count_featurizer,
+                  # spell_checker_featurizer,
+                  # punctuation_count_featurizer,
+                  # stopword_count_featurizer,
+                  # min_max_word_len_featurizer,
                   ngram_featurizer,
                 ]
 

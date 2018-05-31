@@ -7,7 +7,7 @@ from nltk import pos_tag
 from nltk.tokenize import sent_tokenize
 from nltk.corpus import stopwords
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.linear_model import BayesianRidge, LinearRegression 
+from sklearn.linear_model import BayesianRidge, LinearRegression, SGDRegressor
 from sklearn.metrics import cohen_kappa_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
@@ -109,7 +109,7 @@ def min_max_word_len_featurizer(feature_counter, essay):
   feature_counter['min_word_len'] = min_len
   feature_counter['max_word_len'] = max_len
 
-def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True):
+def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=False):
   '''
   Adds ngrams as a feature. plain=True will add normal word ngrams as a feature
   and pos=True will also add POS ngrams as a feature.
@@ -117,7 +117,7 @@ def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True):
   essay_without_punctuation = essay.translate(None, '!"#$%&\'()*+,-./:;<=>?[\\]^_`{|}~')
   pos_tags = pos_tag(essay_without_punctuation.split())
   pos_tags = [('<S>', '<S>')] + pos_tags + [('</S>', '</S>')]
-  for i in range(len(pos_tags) - 1):
+  for i in range(len(pos_tags) - (ngrams - 1)):
     norm_key = pos_tags[i][0] + ' '
     pos_key = pos_tags[i][1] + ' '
     for j in range(1, ngrams):
@@ -153,6 +153,7 @@ def featurize_datasets(
       essays_set,
       featurizers=[word_count_featurizer],
       vectorizer=None,
+      scaler=None,
       train=True):
   # Create feature counters for each essay.
 
@@ -170,14 +171,27 @@ def featurize_datasets(
   if vectorizer == None:
     vectorizer = DictVectorizer(sparse=True)
 
+    #USE standard scalar sklearn 
+
   # pdb.set_trace()
+  if scaler == None:
+    scaler = preprocessing.StandardScaler()
+
 
   if train:
+    #scaler = preprocessing.StandardScaler()
     essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
+    print(essay_features_matrix)
+    scaler.fit(essay_features_matrix)
+    
   else:
+    #scaler = preprocessing.StandardScaler()
     essay_features_matrix = vectorizer.transform(essay_features).toarray()
+    essay_features_matrix = scaler.transform(essay_features_matrix)
 
-  return essay_features_matrix, vectorizer
+
+
+  return essay_features_matrix, vectorizer, scaler
 
 ###########################################################################
 
@@ -186,11 +200,12 @@ def train_models(
         train_scores,
         featurizers,
         model_factory=lambda: LinearRegression(),
+        #model_factory=lambda: SGDRegressor(),
         verbose=True):
   if verbose: 
     print('Featurizing')
     featurizer_start = datetime.datetime.now()
-  train_X, vectorizer = featurize_datasets(essays_set=train_essays, featurizers=featurizers, vectorizer=None, train=True)
+  train_X, vectorizer, scaler = featurize_datasets(essays_set=train_essays, featurizers=featurizers, vectorizer=None, scaler=None, train=True)
 
   if verbose:
     featurizer_end = datetime.datetime.now()
@@ -206,12 +221,13 @@ def train_models(
     'featurizers': featurizers,
     'vectorizer': vectorizer,
     'model': model,
+    'scaler': scaler
   }       
 
-def predict(test_set, featurizers, vectorizer, model):
+def predict(test_set, featurizers, vectorizer, scaler, model):
   print('Predicting')
 
-  test_X, _ = featurize_datasets(essays_set=test_set, featurizers=featurizers, vectorizer=vectorizer, train=False)
+  test_X, _, __ = featurize_datasets(essays_set=test_set, featurizers=featurizers, vectorizer=vectorizer, scaler=scaler, train=False)
   return model.predict(test_X)
 
 ###########################################################################
@@ -228,10 +244,10 @@ def main():
   # y_train = [y_train[0]]
   # y_test = [y_train[0]]
 
-  # X_train = X_train[:300]
-  # X_test = X_test[:50]
-  # y_train = y_train[:300]
-  # y_test = y_test[:50]
+  X_train = X_train[:300]
+  X_test = X_test[:50]
+  y_train = y_train[:300]
+  y_test = y_test[:50]
 
   featurizers = [ 
                   word_count_featurizer,
@@ -242,17 +258,17 @@ def main():
                   punctuation_count_featurizer,
                   stopword_count_featurizer,
                   min_max_word_len_featurizer,
-                  ngram_featurizer,
+                  ngram_featurizer
                 ]
 
   train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)
-  predictions = predict(test_set=X_test, featurizers=featurizers, vectorizer=train_result['vectorizer'], model=train_result['model'])
+  predictions = predict(test_set=X_test, featurizers=featurizers, vectorizer=train_result['vectorizer'], scaler=train_result['scaler'], model=train_result['model'])
 
   print('loss: %f' % mean_squared_error(y_test, predictions))
 
-  # print('true | predicted')
-  # for i, prediction in enumerate(predictions):
-  #   print('%f | %f' % (y_test[i], prediction))
+  print('true | predicted')
+  for i, prediction in enumerate(predictions):
+    print('%f | %f' % (y_test[i], prediction))
 
   lab_enc = preprocessing.LabelEncoder()
   y_test = lab_enc.fit_transform(y_test)

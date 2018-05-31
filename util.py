@@ -17,29 +17,27 @@ def read_data():
     essays = { 
                 1: [],
                 2: [],
-                3 : [],
-                4 : [],
-                5 : [],
-                6 : [],
-                7 : [],
-                8 : [],
+                3: [],
+                4: [],
+                5: [],
+                6: [],
+                7: [],
+                8: [],
              }
     scores = { 
                 1: [],
                 2: [],
-                3 : [],
-                4 : [],
-                5 : [],
-                6 : [],
-                7 : [],
-                8 : [],
+                3: [],
+                4: [],
+                5: [],
+                6: [],
+                7: [],
+                8: [],
               }
 
     for line in csv.reader(f, delimiter='\t'):
       essay_id = int(line[0])
       essay_set = int(line[1])
-
-      pdb.set_trace()
       score = line[6]
 
       essays[essay_set].append((essay_id, line[2]))

@@ -61,12 +61,12 @@ def sentence_count_featurizer(feature_counter, essay):
   '''
   Adds sentence count as a feature.
   '''
-  try:
-   feature_counter['sentence_count'] = len(sent_tokenize(essay))
-  except UnicodeDecodeError, e:
-   pdb.set_trace()
-  # sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
-  # feature_counter['sentence_count'] = sentences
+  # try:
+  #  feature_counter['sentence_count'] = len(sent_tokenize(essay))
+  # except UnicodeDecodeError, e:
+  #  pdb.set_trace()
+  sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
+  feature_counter['sentence_count'] = sentences
 
 def spell_checker_featurizer(feature_counter, essay):
   chkr = SpellChecker("en_UK","en_US")
@@ -86,7 +86,7 @@ def punctuation_count_featurizer(feature_counter, essay):
 
 def stopword_count_featurizer(feature_counter, essay):
   '''
-  Adds number of stopwords (as defined by NLTK corpus) as features.
+  Adds number of stopgwords (as defined by NLTK corpus) as features.
   '''
   feature_counter['stopword_count'] = 0
   essay_without_punctuation = essay.translate(None, string.punctuation)
@@ -109,19 +109,30 @@ def min_max_word_len_featurizer(feature_counter, essay):
   feature_counter['min_word_len'] = min_len
   feature_counter['max_word_len'] = max_len
 
-def pos_ngram_featurizer(feature_counter, essay, ngrams=2):
+def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True):
   '''
-  Adds part of speech ngrams as a feature.
+  Adds ngrams as a feature. plain=True will add normal word ngrams as a feature
+  and pos=True will also add POS ngrams as a feature.
   '''
-  essay_without_punctuation = essay.translate(None, string.punctuation)
-  pos_tags = pos_tag(essay_without_punctuation)
-  pos_tags = [('START', '<S>')] + pos_tags + [('END', '</S>')]
+  essay_without_punctuation = essay.translate(None, '!"#$%&\'()*+,-./:;<=>?[\\]^_`{|}~')
+  pos_tags = pos_tag(essay_without_punctuation.split())
+  pos_tags = [('<S>', '<S>')] + pos_tags + [('</S>', '</S>')]
   for i in range(len(pos_tags) - 1):
-    key = pos_tags[i][1] + ' '
+    norm_key = pos_tags[i][0] + ' '
+    pos_key = pos_tags[i][1] + ' '
     for j in range(1, ngrams):
-      key += pos_tags[i+j][1] + ' '
+      if plain:
+        norm_key += pos_tags[i+j][0] + ' '
+      if pos:
+        if pos_tags[i+j][0].startswith('@'):  # Personally identifying nouns were removed
+          pos_key += 'NN '
+        else:
+          pos_key += pos_tags[i+j][1] + ' '
 
-    feature_counter[key.strip()] += 1
+    if plain:
+      feature_counter[norm_key.strip()] += 1
+    if pos:
+      feature_counter[pos_key.strip()] += 1
 
 def high_vocab_count_featurizer(feature_counter, essay):
   '''
@@ -217,10 +228,10 @@ def main():
   # y_train = [y_train[0]]
   # y_test = [y_train[0]]
 
-  # X_train = X_train[:500]
-  # X_test = X_test[:50]
-  # y_train = y_train[:500]
-  # y_test = y_test[:50]
+  X_train = X_train[:300]
+  X_test = X_test[:50]
+  y_train = y_train[:300]
+  y_test = y_test[:50]
 
   featurizers = [ 
                   word_count_featurizer,
@@ -231,7 +242,7 @@ def main():
                   punctuation_count_featurizer,
                   stopword_count_featurizer,
                   min_max_word_len_featurizer,
-                  pos_ngram_featurizer,
+                  ngram_featurizer,
                 ]
 
   train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)

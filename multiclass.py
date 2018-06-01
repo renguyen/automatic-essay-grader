@@ -4,15 +4,17 @@ from collections import Counter, defaultdict
 import datetime
 import numpy as np 
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.linear_model import BayesianRidge, LinearRegression, SGDRegressor
-from sklearn.metrics import cohen_kappa_score, mean_squared_error
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.svm import LinearSVC
+from sklearn.metrics import cohen_kappa_score
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
+import string
 import pdb
 from tqdm import tqdm
 
-from util import *
 from featurizers import *
+from util import *
 
 
 def featurize_datasets(
@@ -53,8 +55,7 @@ def train_models(
         train_essays,
         train_scores,
         featurizers,
-        model_factory=lambda: LinearRegression(),
-        # model_factory=lambda: SGDRegressor(),
+        model_factory=lambda: OneVsRestClassifier(LinearSVC(random_state=0)),
         verbose=True):
   if verbose: 
     print('Featurizing')
@@ -85,6 +86,14 @@ def predict(test_set, featurizers, vectorizer, scaler, model):
 
 ###########################################################################
 
+def get_accuracy(test, predictions):
+  num_right = 0.0
+  for i, correct in enumerate(test):
+    if correct == predictions[i]:
+      num_right += 1
+
+  print('Accuracy: %f' % (num_right / len(test)))
+
 def main():
   all_essays, all_scores = read_data()
   essays = all_essays[1]  # only essays from set 1
@@ -99,31 +108,30 @@ def main():
   # y_train = [y_train[0]]
   # y_test = [y_train[0]]
 
-  X_train = X_train[:300]
-  X_test = X_test[:50]
-  y_train = y_train[:300]
-  y_test = y_test[:50]
+  # X_train = X_train[:300]
+  # X_test = X_test[:50]
+  # y_train = y_train[:300]
+  # y_test = y_test[:50]
 
   featurizers = [ 
-                  # word_count_featurizer,
-                  # char_count_featurizer,
-                  # avg_word_len_featurizer,
-                  # sentence_count_featurizer,
+                  word_count_featurizer,
+                  avg_word_len_featurizer,
+                  sentence_count_featurizer,
                   # spell_checker_featurizer,
-                  # punctuation_count_featurizer,
-                  # stopword_count_featurizer,
-                  # min_max_word_len_featurizer,
+                  punctuation_count_featurizer,
+                  stopword_count_featurizer,
+                  min_max_word_len_featurizer,
                   ngram_featurizer
                 ]
 
   train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)
   predictions = predict(test_set=X_test, featurizers=featurizers, vectorizer=train_result['vectorizer'], scaler=train_result['scaler'], model=train_result['model'])
 
-  print('loss: %f' % mean_squared_error(y_test, predictions))
-
   print('true | predicted')
   for i, prediction in enumerate(predictions):
-    print('%f | %f' % (y_test[i], prediction))
+    print('%d | %d' % (y_test[i], prediction))
+
+  get_accuracy(y_test, predictions)
 
   lab_enc = preprocessing.LabelEncoder()
   y_test = lab_enc.fit_transform(y_test)

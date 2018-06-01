@@ -21,12 +21,6 @@ def word_count_featurizer(feature_counter, essay):
   word_count = len(essay.split(' '))
   feature_counter['word_count'] = word_count
 
-def char_count_featurizer(feature_counter, essay):
-  '''
-  Adds character count as a feature.
-  '''
-  feature_counter['character_count'] = len(essay)
-
 def avg_word_len_featurizer(feature_counter, essay):
   '''
   Adds the average length of the words as a feature.

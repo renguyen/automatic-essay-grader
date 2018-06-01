@@ -106,7 +106,6 @@ def main():
 
   featurizers = [ 
                   # word_count_featurizer,
-                  # char_count_featurizer,
                   # avg_word_len_featurizer,
                   # sentence_count_featurizer,
                   # spell_checker_featurizer,

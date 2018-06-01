@@ -9,7 +9,6 @@ from sklearn.svm import LinearSVC
 from sklearn.metrics import cohen_kappa_score
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
-import string
 import pdb
 from tqdm import tqdm
 
@@ -59,17 +58,22 @@ def train_models(
         verbose=True):
   if verbose: 
     print('Featurizing')
-    featurizer_start = datetime.datetime.now()
+    start = datetime.datetime.now()
   train_X, vectorizer, scaler = featurize_datasets(essays_set=train_essays, featurizers=featurizers, vectorizer=None, scaler=None, train=True)
 
   if verbose:
-    featurizer_end = datetime.datetime.now()
-    print('Featurizing took %d seconds \n' % (featurizer_end - featurizer_start).seconds)
+    end = datetime.datetime.now()
+    print('Featurizing took %d seconds \n' % (end - start).seconds)
   
-  if verbose: print('Training model')
+  if verbose: 
+    print('Training model')
+    start = datetime.datetime.now()
   model = model_factory()
   model.fit(train_X, train_scores)
-  if verbose: print('Training complete\n')
+  if verbose: 
+    end = datetime.datetime.now()
+    print('Training complete')
+    print('Training took %d seconds \n' % (end - start).seconds)
   
   return {
     'featurizers': featurizers,
@@ -92,52 +96,67 @@ def get_accuracy(test, predictions):
     if correct == predictions[i]:
       num_right += 1
 
-  print('Accuracy: %f' % (num_right / len(test)))
+  return num_right / len(test)
+
+def print_metrics(metrics):
+  print('\n\n{0:9s} {1:15s} {2:15s}'.format('set', 'accuracy', 'cohen'))
+  for set_id, metric in enumerate(metrics):
+    accuracy, cohen_kappa = metric
+    print('{0:2d} {1:15f} {2:15f}'.format(set_id, accuracy, cohen_kappa))
+
+###########################################################################
 
 def main():
   all_essays, all_scores = read_data()
-  essays = all_essays[1]  # only essays from set 1
-  scores = all_scores[1]
+  metrics = []
 
-  # Split data into test and train
-  X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
+  for essay_set in all_essays.keys():
+  # for essay_set in [1]:
+    print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
+    essays = all_essays[essay_set]
+    scores = all_scores[essay_set]
 
-  # Sanity check
-  # X_train = [X_train[0]]
-  # X_test = [X_train[0]]
-  # y_train = [y_train[0]]
-  # y_test = [y_train[0]]
+    # Split data into test and train
+    X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
-  # X_train = X_train[:300]
-  # X_test = X_test[:50]
-  # y_train = y_train[:300]
-  # y_test = y_test[:50]
+    # X_train = X_train[:300]
+    # X_test = X_test[:50]
+    # y_train = y_train[:300]
+    # y_test = y_test[:50]
 
-  featurizers = [ 
-                  word_count_featurizer,
-                  avg_word_len_featurizer,
-                  sentence_count_featurizer,
-                  # spell_checker_featurizer,
-                  punctuation_count_featurizer,
-                  stopword_count_featurizer,
-                  min_max_word_len_featurizer,
-                  ngram_featurizer
-                ]
+    featurizers = [ 
+                    word_count_featurizer,
+                    avg_word_len_featurizer,
+                    sentence_count_featurizer,
+                    # spell_checker_featurizer,
+                    punctuation_count_featurizer,
+                    stopword_count_featurizer,
+                    min_max_word_len_featurizer,
+                    ngram_featurizer
+                  ]
 
-  train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)
-  predictions = predict(test_set=X_test, featurizers=featurizers, vectorizer=train_result['vectorizer'], scaler=train_result['scaler'], model=train_result['model'])
+    train_result = train_models(train_essays=X_train, 
+                                train_scores=y_train, 
+                                featurizers=featurizers, 
+                                verbose=True)
+    predictions = predict(test_set=X_test, 
+                          featurizers=featurizers, 
+                          vectorizer=train_result['vectorizer'], 
+                          scaler=train_result['scaler'], 
+                          model=train_result['model'])
 
-  print('true | predicted')
-  for i, prediction in enumerate(predictions):
-    print('%d | %d' % (y_test[i], prediction))
+    # print('true | predicted')
+    # for i, prediction in enumerate(predictions):
+    #   print('%d | %d' % (y_test[i], prediction))
 
-  get_accuracy(y_test, predictions)
+    accuracy = get_accuracy(y_test, predictions)
+    cohen_kappa = cohen_kappa_score(y_test, predictions)
+    print('Accuracy for set %d: %f' % (essay_set, accuracy))
+    print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
 
-  lab_enc = preprocessing.LabelEncoder()
-  y_test = lab_enc.fit_transform(y_test)
-  predictions = lab_enc.fit_transform(predictions)
+    metrics.append((accuracy, cohen_kappa))
 
-  print(cohen_kappa_score(y_test, predictions))  
+  print_metrics(metrics)
 
 
 if __name__ == "__main__":

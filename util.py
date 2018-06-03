@@ -38,7 +38,7 @@ def read_data():
     for line in csv.reader(f, delimiter='\t'):
       essay_id = int(line[0])
       essay_set = int(line[1])
-      score = line[6]
+      score = int(line[6])
 
       essays[essay_set].append((essay_id, line[2]))
       scores[essay_set].append(score)

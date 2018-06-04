@@ -120,11 +120,6 @@ def main():
     # Split data into test and train
     X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
-    # X_train = X_train[:300]
-    # X_test = X_test[:50]
-    # y_train = y_train[:300]
-    # y_test = y_test[:50]
-
     featurizers = [ 
                     # word_count_featurizer,
                     # avg_word_len_featurizer,

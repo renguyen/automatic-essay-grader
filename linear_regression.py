@@ -106,14 +106,14 @@ def main():
   #y_test = y_test[:50]
 
   featurizers = [ 
-                  # word_count_featurizer,
-                  # avg_word_len_featurizer,
-                  # sentence_count_featurizer,
+                  word_count_featurizer,
+                  avg_word_len_featurizer,
+                  sentence_count_featurizer,
                   # spell_checker_featurizer,
-                  # punctuation_count_featurizer,
-                  # stopword_count_featurizer,
-                  # min_max_word_len_featurizer,
-                  ngram_featurizer
+                  punctuation_count_featurizer,
+                  stopword_count_featurizer,
+                  min_max_word_len_featurizer,
+                  #ngram_featurizer
                 ]
 
   train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)

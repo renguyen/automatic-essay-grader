@@ -129,11 +129,12 @@ def main():
                     # word_count_featurizer,
                     # avg_word_len_featurizer,
                     sentence_count_featurizer,
-                    # spell_checker_featurizer,
-                    # punctuation_count_featurizer,
-                    # stopword_count_featurizer,
-                    # min_max_word_len_featurizer,
-                    # ngram_featurizer
+                    spell_checker_featurizer,
+                    punctuation_count_featurizer,
+                    stopword_count_featurizer,
+                    min_max_word_len_featurizer,
+                    ngram_featurizer,
+                    high_vocab_count_featurizer
                   ]
 
     train_result = train_models(train_essays=X_train, 
@@ -146,9 +147,9 @@ def main():
                           scaler=train_result['scaler'], 
                           model=train_result['model'])
 
-    # print('true | predicted')
-    # for i, prediction in enumerate(predictions):
-    #   print('%d | %d' % (y_test[i], prediction))
+    print('true | predicted')
+    for i, prediction in enumerate(predictions):
+      print('%d | %d' % (y_test[i], prediction))
 
     accuracy = get_accuracy(y_test, predictions)
     cohen_kappa = cohen_kappa_score(y_test, predictions)

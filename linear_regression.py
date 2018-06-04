@@ -39,11 +39,12 @@ def featurize_datasets(
 
   if train:
     essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
-    # scaler.fit(essay_features_matrix)
-    
+    #scaler.fit(essay_features_matrix)
+
   else:
     essay_features_matrix = vectorizer.transform(essay_features).toarray()
-    # essay_features_matrix = scaler.transform(essay_features_matrix)
+    #essay_features_matrix = scaler.transform(essay_features_matrix)
+
 
   return essay_features_matrix, vectorizer, scaler
 
@@ -99,20 +100,20 @@ def main():
   # y_train = [y_train[0]]
   # y_test = [y_train[0]]
 
-  X_train = X_train[:300]
-  X_test = X_test[:50]
-  y_train = y_train[:300]
-  y_test = y_test[:50]
+  #X_train = X_train[:300]
+  #X_test = X_test[:50]
+  #y_train = y_train[:300]
+  #y_test = y_test[:50]
 
   featurizers = [ 
-                  # word_count_featurizer,
-                  # avg_word_len_featurizer,
-                  # sentence_count_featurizer,
+                  word_count_featurizer,
+                  avg_word_len_featurizer,
+                  sentence_count_featurizer,
                   # spell_checker_featurizer,
-                  # punctuation_count_featurizer,
-                  # stopword_count_featurizer,
-                  # min_max_word_len_featurizer,
-                  ngram_featurizer
+                  punctuation_count_featurizer,
+                  stopword_count_featurizer,
+                  min_max_word_len_featurizer,
+                  #ngram_featurizer
                 ]
 
   train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)

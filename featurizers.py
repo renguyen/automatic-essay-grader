@@ -9,6 +9,8 @@ import spacy
 import sys
 import string
 import pdb
+import csv
+import os
 
 # Removes the UnicodeDecodeError when using NLTK sent_tokenize
 reload(sys)
@@ -17,6 +19,13 @@ sys.setdefaultencoding('utf-8')
 stopWords = set(stopwords.words('english'))
 
 nlp = spacy.load('en_core_web_sm')
+vocab_words = []
+with open('vocab.txt', mode='rt') as f:
+  for line in csv.reader(f, delimiter='\t'):
+    vocab_words.append(line[0])
+
+#print(vocab_words)
+
 
 def word_count_featurizer(feature_counter, essay):
   '''
@@ -135,7 +144,11 @@ def high_vocab_count_featurizer(feature_counter, essay):
   Adds number of "high vocabulary words" as a feature. 
   TODO: determine high vocab words.
   '''
-  pass
+  essay_without_punctuation = essay.translate(None, string.punctuation)
+  for word in essay_without_punctuation.split():
+    if word in vocab_words:
+      feature_counter[word] += 1
+      #print('%s | %d' % (word, feature_counter[word]))
 
 def essay_prompt_similarity_featurizer(feature_counter, essay):
   '''

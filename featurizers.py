@@ -51,24 +51,6 @@ def sentence_count_featurizer(feature_counter, essay):
   sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
   feature_counter['sentence_count'] = sentences
 
-  # try:
-  #   doc = nlp(essay.decode('utf-8'))
-  # except UnicodeDecodeError, e:
-  #   pdb.set_trace()
-  # sentences = [sent.string.strip() for sent in doc.sents]
-  # feature_counter['sentence_count'] = len(sentences)
-
-  # min_len = float('inf')
-  # max_len = float('-inf')
-
-  # for sentence in sentences:
-  #   sentence_len = len(sentence.split())
-  #   feature_counter['sentence_len_%d' % sentence_len] += 1
-  #   min_len = min(min_len, sentence_len)
-  #   max_len = max(max_len, sentence_len)
-
-  # feature_counter['sentence_len_range'] = max_len - min_len
-
 def spell_checker_featurizer(feature_counter, essay):
   chkr = SpellChecker("en_UK","en_US")
   chkr.set_text(essay)

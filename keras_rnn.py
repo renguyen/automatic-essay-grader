@@ -123,6 +123,7 @@ def rnn_model():
     model.add(Dense(8, input_dim=glove_size, activation='relu'))
     model.add(Dense(num_scores, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    print(num_scores)
     return model
 
 num_scores = 0
@@ -151,6 +152,7 @@ def main():
 
         keras_labels = encode_data_for_keras(avg_scores);
         num_scores = len(keras_labels[0])
+        print(num_scores)
         #X_train, X_test, y_train, y_test = train_test_split(keras_data, keras_labels, train_size=0.9)
         # Split data into test and train
         print('Creating Estimator...')

@@ -121,9 +121,9 @@ def main():
 
   print('loss: %f' % mean_squared_error(y_test, predictions))
 
-  print('true | predicted')
-  for i, prediction in enumerate(predictions):
-    print('%f | %f' % (y_test[i], prediction))
+  # print('true | predicted')
+  # for i, prediction in enumerate(predictions):
+  #   print('%f | %f' % (y_test[i], prediction))
 
   lab_enc = preprocessing.LabelEncoder()
   y_test = lab_enc.fit_transform(y_test)

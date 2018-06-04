@@ -1,11 +1,14 @@
 # Contains various feature extractors to be used across different models.
 
+from __future__ import unicode_literals
 from nltk import pos_tag
 from nltk.tokenize import sent_tokenize
 from nltk.corpus import stopwords
 from enchant.checker import SpellChecker
+import spacy
 import sys
 import string
+import pdb
 
 # Removes the UnicodeDecodeError when using NLTK sent_tokenize
 reload(sys)
@@ -13,6 +16,7 @@ sys.setdefaultencoding('utf-8')
 
 stopWords = set(stopwords.words('english'))
 
+nlp = spacy.load('en_core_web_sm')
 
 def word_count_featurizer(feature_counter, essay):
   '''
@@ -40,8 +44,25 @@ def sentence_count_featurizer(feature_counter, essay):
   #  feature_counter['sentence_count'] = len(sent_tokenize(essay))
   # except UnicodeDecodeError, e:
   #  pdb.set_trace()
-  sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
-  feature_counter['sentence_count'] = sentences
+  # sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
+  # feature_counter['sentence_count'] = sentences
+  try:
+    doc = nlp(essay.decode('utf-8'))
+  except UnicodeDecodeError, e:
+    pdb.set_trace()
+  sentences = [sent.string.strip() for sent in doc.sents]
+  feature_counter['sentence_count'] = len(sentences)
+
+  min_len = float('inf')
+  max_len = float('-inf')
+
+  for sentence in sentences:
+    sentence_len = len(sentence.split())
+    feature_counter['sentence_len_%d' % sentence_len] += 1
+    min_len = min(min_len, sentence_len)
+    max_len = max(max_len, sentence_len)
+
+  feature_counter['sentence_len_range'] = max_len - min_len
 
 def spell_checker_featurizer(feature_counter, essay):
   chkr = SpellChecker("en_UK","en_US")
@@ -84,7 +105,7 @@ def min_max_word_len_featurizer(feature_counter, essay):
   feature_counter['min_word_len'] = min_len
   feature_counter['max_word_len'] = max_len
 
-def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=False):
+def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True):
   '''
   Adds ngrams as a feature. plain=True will add normal word ngrams as a feature
   and pos=True will also add POS ngrams as a feature.

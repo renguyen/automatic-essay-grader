@@ -62,18 +62,6 @@ def glove2dict(src_filename):
 glove_size = 300
 glove_lookup = glove2dict(os.path.join(glove_home, 'glove.6B.'+str(glove_size)+'d.txt'))
 
-# Utility function to report best scores
-def report(results, n_top=3):
-    for i in range(1, n_top + 1):
-        candidates = np.flatnonzero(results['rank_test_score'] == i)
-        for candidate in candidates:
-            print("Model with rank: {0}".format(i))
-            print("Mean score: {0:.3f} (std: {1:.3f})".format(
-                  results['mean_test_score'][candidate],
-                  results['std_test_score'][candidate]))
-            print("Parameters: {0}".format(results['params'][candidate]))
-            print("")
-
 def create_glove_representations(all_essays):
     to_return = {}
     for x in range(1, len(all_essays)+1):
@@ -91,15 +79,6 @@ def create_glove_representations(all_essays):
     print('Created GloVe representations...')
     return to_return
 
-
-def train_models(X_train, y_train, verbose=True):
-    if verbose: print('Training model')
-
-
-
-
-    if verbose: print('Training complete\n')
-
 def encode_data_for_keras(avg_scores):
 
     # Convert y
@@ -114,13 +93,15 @@ def encode_data_for_keras(avg_scores):
 
 
 def cohen_kappa(y_true, y_pred):
-    pass
+    y_t_clean = [y_true[i].index(1) for i in y_true]
+    y_p_clean = [y_pred[j].index(1) for k in y_pred]
+    return cohen_kappa_score(y_t_clean, y_p_clean)
 
 def test_model(num_scores):
     model = Sequential()
     model.add(Dense(100, input_dim=glove_size, activation='relu'))
     model.add(Dense(rnn_model.num_scores, activation='softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', cohen_kappa])
     return model
 
 def MLP(num_scores):
@@ -137,7 +118,7 @@ def MLP(num_scores):
     model.add(Dropout(0.5))
 
     model.add(Dense(num_scores, activation='softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer='RMSprop', metrics=['accuracy'])
     return model
 
 
@@ -175,6 +156,8 @@ def main():
         X_train, X_test, y_train, y_test = train_test_split(glove_data, Y, train_size=0.9)
         # c_y_train, keras_length = encode_data_for_keras(y_train)
         # c_y_test, test_len = encode_data_for_keras(y_test)
+        param_matrix = {'activation': ['relu'], }
+
 
         rnn = MLP(keras_length)
         rnn.fit(X_train, y_train, epochs=50, batch_size=20)

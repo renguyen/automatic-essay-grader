@@ -39,12 +39,11 @@ def featurize_datasets(
 
   if train:
     essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
-    #scaler.fit(essay_features_matrix)
-
+    # scaler.fit(essay_features_matrix)
+    
   else:
     essay_features_matrix = vectorizer.transform(essay_features).toarray()
-    #essay_features_matrix = scaler.transform(essay_features_matrix)
-
+    # essay_features_matrix = scaler.transform(essay_features_matrix)
 
   return essay_features_matrix, vectorizer, scaler
 
@@ -86,50 +85,66 @@ def predict(test_set, featurizers, vectorizer, scaler, model):
 
 ###########################################################################
 
+def print_metrics(metrics):
+  print('\n\n{0:10s} {1:17s} {2:15s}'.format('set', 'mse', 'cohen'))
+  for set_id, metric in enumerate(metrics):
+    mse, cohen_kappa = metric
+    print('{0:2d} {1:15f} {2:15f}'.format(set_id+1, mse, cohen_kappa))
+
+###########################################################################
+
 def main():
+  metrics = []
   all_essays, all_scores = read_data()
-  essays = all_essays[1]  # only essays from set 1
-  scores = all_scores[1]
 
-  # Split data into test and train
-  X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
+  for essay_set in all_essays.keys():
+  # for essay_set in [1]:
+    print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
+    essays = all_essays[essay_set]
+    scores = all_scores[essay_set]
 
-  # Sanity check
-  # X_train = [X_train[0]]
-  # X_test = [X_train[0]]
-  # y_train = [y_train[0]]
-  # y_test = [y_train[0]]
+    # Split data into test and train
+    X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
-  #X_train = X_train[:300]
-  #X_test = X_test[:50]
-  #y_train = y_train[:300]
-  #y_test = y_test[:50]
+    featurizers = [ 
+                    word_count_featurizer,
+                    # avg_word_len_featurizer,
+                    # sentence_count_featurizer,
+                    # spell_checker_featurizer,
+                    # punctuation_count_featurizer,
+                    # stopword_count_featurizer,
+                    # min_max_word_len_featurizer,
+                    # ngram_featurizer
+                  ]
 
-  featurizers = [ 
-                  word_count_featurizer,
-                  avg_word_len_featurizer,
-                  sentence_count_featurizer,
-                  # spell_checker_featurizer,
-                  punctuation_count_featurizer,
-                  stopword_count_featurizer,
-                  min_max_word_len_featurizer,
-                  #ngram_featurizer
-                ]
+    train_result = train_models(train_essays=X_train, 
+                                train_scores=y_train, 
+                                featurizers=featurizers, 
+                                verbose=True)
+    predictions = predict(test_set=X_test, 
+                          featurizers=featurizers, 
+                          vectorizer=train_result['vectorizer'], 
+                          scaler=train_result['scaler'], 
+                          model=train_result['model'])
 
-  train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)
-  predictions = predict(test_set=X_test, featurizers=featurizers, vectorizer=train_result['vectorizer'], scaler=train_result['scaler'], model=train_result['model'])
+    mse = mean_squared_error(y_test, predictions)
+    print('MSE for set %d: %f' % (essay_set, mse))
 
-  print('loss: %f' % mean_squared_error(y_test, predictions))
+    print('true | predicted')
+    for i, prediction in enumerate(predictions):
+      print('%f | %f' % (y_test[i], prediction))
 
-  # print('true | predicted')
-  # for i, prediction in enumerate(predictions):
-  #   print('%f | %f' % (y_test[i], prediction))
+    lab_enc = preprocessing.LabelEncoder()
+    y_test = lab_enc.fit_transform(y_test)
+    predictions = lab_enc.fit_transform(predictions)
 
-  lab_enc = preprocessing.LabelEncoder()
-  y_test = lab_enc.fit_transform(y_test)
-  predictions = lab_enc.fit_transform(predictions)
+    cohen_kappa = cohen_kappa_score(y_test, predictions)
+    print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
 
-  print(cohen_kappa_score(y_test, predictions))  
+    metrics.append((mse, cohen_kappa))
+
+  print_metrics(metrics)
+
 
 
 if __name__ == "__main__":

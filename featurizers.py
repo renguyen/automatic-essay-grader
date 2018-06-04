@@ -6,6 +6,7 @@ from nltk.corpus import stopwords
 from enchant.checker import SpellChecker
 import sys
 import string
+import pdb
 import csv
 import os
 
@@ -18,7 +19,6 @@ stopWords = set(stopwords.words('english'))
 vocab_words = []
 with open('vocab.txt', mode='rt') as f:
   for line in csv.reader(f, delimiter='\t'):
-    
     vocab_words.append(line[0])
 
 
@@ -93,7 +93,7 @@ def min_max_word_len_featurizer(feature_counter, essay):
   feature_counter['min_word_len'] = min_len
   feature_counter['max_word_len'] = max_len
 
-def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=False):
+def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True):
   '''
   Adds ngrams as a feature. plain=True will add normal word ngrams as a feature
   and pos=True will also add POS ngrams as a feature.
@@ -128,10 +128,6 @@ def high_vocab_count_featurizer(feature_counter, essay):
     if word in vocab_words:
       feature_counter[word] += 1
       #print('%s | %d' % (word, feature_counter[word]))
-
-
-
-  #pass
 
 def essay_prompt_similarity_featurizer(feature_counter, essay):
   '''

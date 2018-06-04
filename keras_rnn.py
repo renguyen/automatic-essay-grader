@@ -15,7 +15,7 @@ import sys
 import pickle
 import pandas as pd
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from keras.wrappers.scikit_learn import KerasClassifier
@@ -59,7 +59,7 @@ def glove2dict(src_filename):
     print('Read in GloVe Dict...')
     return data
 
-glove_size = 50
+glove_size = 300
 glove_lookup = glove2dict(os.path.join(glove_home, 'glove.6B.'+str(glove_size)+'d.txt'))
 
 # Utility function to report best scores
@@ -113,12 +113,34 @@ def encode_data_for_keras(avg_scores):
     return (dummy_y, len(dummy_y[0]))
 
 
-def rnn_model():
+def cohen_kappa(y_true, y_pred):
+    pass
+
+def test_model(num_scores):
     model = Sequential()
     model.add(Dense(100, input_dim=glove_size, activation='relu'))
     model.add(Dense(rnn_model.num_scores, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     return model
+
+def MLP(num_scores):
+    model = Sequential()
+    model.add(Dense(64, activation='relu', input_dim=glove_size))
+    model.add(Dropout(0.5))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dropout(0.5))
+
+    model.add(Dense(num_scores, activation='softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    return model
+
+
 
 num_scores = 0
 
@@ -149,18 +171,17 @@ def main():
         #X_train, X_test, y_train, y_test = train_test_split(keras_data, keras_labels, train_size=0.9)
         # Split data into test and train
         print('Creating Estimator...')
-        
-        X_train, X_test, y_train, y_test = train_test_split(glove_data, avg_scores, train_size=0.9)
-        c_y_train, keras_length = encode_data_for_keras(y_train)
-        c_y_test, test_len = encode_data_for_keras(y_test)
-        rnn_model.num_scores = keras_length
+        Y, keras_length = encode_data_for_keras(avg_scores)
+        X_train, X_test, y_train, y_test = train_test_split(glove_data, Y, train_size=0.9)
+        # c_y_train, keras_length = encode_data_for_keras(y_train)
+        # c_y_test, test_len = encode_data_for_keras(y_test)
 
-        rnn = rnn_model()
-        rnn.fit(X_train, c_y_train, epochs=50, batch_size=20)
+        rnn = MLP(keras_length)
+        rnn.fit(X_train, y_train, epochs=50, batch_size=20)
 
-        scores = rnn.evaluate(X_test, c_y_test, verbose=0)
-        for i in range(len(model.metrics_names)):
-            print("%s: %.2f%%" % (model.metrics_names[i], scores[i]*100))
+        scores = rnn.evaluate(X_test, y_test, verbose=0)
+        for i in range(len(rnn.metrics_names)):
+            print("%s: %.2f%%" % (rnn.metrics_names[i], scores[i]*100))
         # estimator = KerasClassifier(build_fn=rnn_model, epochs=200, batch_size=20)
 
 

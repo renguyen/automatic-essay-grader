@@ -5,7 +5,7 @@ from collections import Counter, defaultdict
 import numpy as np
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import cohen_kappa_score, make_scorer
+from sklearn.metrics import cohen_kappa_score, make_scorer, accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import pdb
@@ -30,10 +30,6 @@ base_data_filename = os.path.join(data_home, 'training_set_rel3.tsv')
 vsmdata_home = 'vsmdata'
 
 glove_home = os.path.join(vsmdata_home, 'glove.6B')
-
-setattr(tf.contrib.rnn.GRUCell, '__deepcopy__', lambda self, _: self)
-setattr(tf.contrib.rnn.BasicLSTMCell, '__deepcopy__', lambda self, _: self)
-setattr(tf.contrib.rnn.MultiRNNCell, '__deepcopy__', lambda self, _: self)
 
 def glove2dict(src_filename):
     """GloVe Reader.
@@ -108,22 +104,20 @@ def encode_data_for_keras(avg_scores):
 
     # Convert y
     # encode class values as integers
-    avg_scores = [round(x, 0) for x in avg_scores]
     encoder = LabelEncoder()
     encoder.fit(avg_scores)
     encoded_Y = encoder.transform(avg_scores)
     # convert integers to dummy variables (i.e. one hot encoded)
-    dummy_y = np_utils.to_categorical(encoded_Y)
 
-    return dummy_y
+    dummy_y = np_utils.to_categorical(encoded_Y)
+    return (dummy_y, len(dummy_y[0]))
 
 
 def rnn_model():
     model = Sequential()
-    model.add(Dense(8, input_dim=glove_size, activation='relu'))
-    model.add(Dense(num_scores, activation='softmax'))
+    model.add(Dense(100, input_dim=glove_size, activation='relu'))
+    model.add(Dense(rnn_model.num_scores, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-    print(num_scores)
     return model
 
 num_scores = 0
@@ -148,21 +142,41 @@ def main():
 
     for i in range(1, len(all_glove_data)+1):
         glove_data = all_glove_data[i]
-        avg_scores = all_avg_scores[i]
+        avg_scores = [round (x, 0) for x in all_avg_scores[i]]
 
-        keras_labels = encode_data_for_keras(avg_scores);
-        num_scores = len(keras_labels[0])
-        print(num_scores)
+        # Limit data just for testing
+
         #X_train, X_test, y_train, y_test = train_test_split(keras_data, keras_labels, train_size=0.9)
         # Split data into test and train
         print('Creating Estimator...')
+        
+        X_train, X_test, y_train, y_test = train_test_split(glove_data, avg_scores, train_size=0.9)
+        c_y_train, keras_length = encode_data_for_keras(y_train)
+        c_y_test, test_len = encode_data_for_keras(y_test)
+        rnn_model.num_scores = keras_length
 
-        estimator = KerasClassifier(build_fn=rnn_model, epochs=200, batch_size=5)
+        rnn = rnn_model()
+        rnn.fit(X_train, c_y_train, epochs=50, batch_size=20)
+
+        scores = rnn.evaluate(X_test, c_y_test, verbose=0)
+        for i in range(len(model.metrics_names)):
+            print("%s: %.2f%%" % (model.metrics_names[i], scores[i]*100))
+        # estimator = KerasClassifier(build_fn=rnn_model, epochs=200, batch_size=20)
+
+
+        # estimator.fit()
+
+
         # Compile model
-        print('Compiling Model...')
-        kfold = KFold(n_splits=10, shuffle=True, random_state=seed)
-        results = cross_val_score(estimator, glove_data, keras_labels, cv=kfold)
-        print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+        # print('Compiling Model...')
+        # kfold = KFold(n_splits=1, shuffle=True, random_state=seed)
+        # results = cross_val_score(estimator, glove_data, keras_labels, cv=kfold)
+        # print("Baseline: %.2f%% (%.2f%%)" % (results.mean(), results.std()))
+        #
+        # with open(os.path.join(data_home, 'results.pickle'), 'wb') as handle:
+        #     pickle.dump(results, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        break
 
 
 if __name__ == "__main__":

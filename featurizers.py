@@ -110,28 +110,33 @@ def min_max_word_len_featurizer(feature_counter, essay, essay_set=None):
 
 def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True, essay_set=None):
   '''
-  Adds ngrams as a feature. plain=True will add normal word ngrams as a feature
-  and pos=True will also add POS ngrams as a feature.
+  Adds ngrams as a feature. 
+  '''
+  essay = '<S> ' + essay + ' </S>'
+  words = essay.split()
+  for i in range(len(words) - (ngrams - 1)):
+    key = words[i] + ' '
+    for j in range(1, ngrams):
+      key += words[i+j] + ' '
+
+    feature_counter[key.strip()] += 1
+
+def pos_ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
+  '''
+  Adds part of speech ngrams as a feature. 
   '''
   essay_without_punctuation = essay.translate(None, '!"#$%&\'()*+,-./:;<=>?[\\]^_`{|}~')
   pos_tags = pos_tag(essay_without_punctuation.split())
   pos_tags = [('<S>', '<S>')] + pos_tags + [('</S>', '</S>')]
   for i in range(len(pos_tags) - (ngrams - 1)):
-    norm_key = pos_tags[i][0] + ' '
-    pos_key = pos_tags[i][1] + ' '
+    key = pos_tags[i][1] + ' '
     for j in range(1, ngrams):
-      if plain:
-        norm_key += pos_tags[i+j][0] + ' '
-      if pos:
-        if pos_tags[i+j][0].startswith('@'):  # Personally identifying nouns were removed
-          pos_key += 'NN '
-        else:
-          pos_key += pos_tags[i+j][1] + ' '
+      if pos_tags[i+j][0].startswith('@'):  # Personally identifying nouns were removed
+        key += 'NN '
+      else:
+        key += pos_tags[i+j][1] + ' '
 
-    if plain:
-      feature_counter[norm_key.strip()] += 1
-    if pos:
-      feature_counter[pos_key.strip()] += 1
+    feature_counter[key.strip()] += 1
 
 def high_vocab_count_featurizer(feature_counter, essay, essay_set=None):
   '''

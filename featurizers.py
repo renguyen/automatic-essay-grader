@@ -153,4 +153,6 @@ def essay_prompt_similarity_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds score for how similar an essay is to the score.
   '''
-  pass
+  print(essay_set)
+  feature_counter['tfidf'] = 3
+  #pass

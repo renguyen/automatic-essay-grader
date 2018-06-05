@@ -109,8 +109,8 @@ def main():
   metrics = []
   all_essays, all_scores = read_data()
 
-  # for essay_set in all_essays.keys():
-  for essay_set in [1]:
+  #for essay_set in all_essays.keys():
+  for essay_set in [3]:
     print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
     essays = all_essays[essay_set]
     scores = all_scores[essay_set]
@@ -122,12 +122,13 @@ def main():
                     word_count_featurizer,
                     avg_word_len_featurizer,
                     sentence_count_featurizer,
-                    #spell_checker_featurizer,
+                    spell_checker_featurizer,
                     punctuation_count_featurizer,
                     stopword_count_featurizer,
                     min_max_word_len_featurizer,
                     #ngram_featurizer,
-                    #pos_ngram_featurizer
+                    #pos_ngram_featurizer, 
+                    high_vocab_count_featurizer
                   ]
 
     train_result = train_models(train_essays=X_train, 
@@ -150,20 +151,23 @@ def main():
       predictions[i] = round(predictions[i])
 
 
-    print('true | predicted')
-    for i, prediction in enumerate(predictions):
-      print('%f | %f' % (y_test[i], prediction))
+    # print('true | predicted')
+    # for i, prediction in enumerate(predictions):
+    #   print('%f | %f' % (y_test[i], prediction))
 
     #WEIGHTS:
-    #print('Feature coefficients for set %d:' % essay_set)
-    #print('Word count:  %f' % train_result['model'].coef_[0])
-    #print('Average word length:  %f' % train_result['model'].coef_[1])
-    #print('Sentence count:  %f' % train_result['model'].coef_[2])
-    #print('Spell checker:  %f' % train_result['model'].coef_[3])
-    #print('Punctuation count:  %f' % train_result['model'].coef_[3])
-    #print('Stop word count:  %f' % train_result['model'].coef_[4])
-    #print('Min Max word length:  %f' % train_result['model'].coef_[5])
+    print('Feature coefficients for set %d:' % essay_set)
+    print('Word count:  %f' % train_result['model'].coef_[0])
+    print('Average word length:  %f' % train_result['model'].coef_[1])
+    print('Sentence count:  %f' % train_result['model'].coef_[2])
+    print('Spell checker:  %f' % train_result['model'].coef_[3])
+    print('Punctuation count:  %f' % train_result['model'].coef_[4])
+    print('Stop word count:  %f' % train_result['model'].coef_[5])
+    print('Min Max word length:  %f' % train_result['model'].coef_[6])
     #print('Ngrams:  %f' % train_result['model'].coef_[7])
+    #print('Part of speech:  %f' % train_result['model'].coef_[8])
+    print('High vocab count:  %f' % train_result['model'].coef_[7])
+
 
 
     lab_enc = preprocessing.LabelEncoder()

@@ -22,6 +22,7 @@ with open('vocab.txt', mode='rt') as f:
     vocab_words.append(line[0])
 
 
+
 def word_count_featurizer(feature_counter, essay):
   '''
   Adds word count as a feature.

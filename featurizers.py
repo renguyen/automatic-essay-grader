@@ -31,7 +31,7 @@ with open('prompts.txt', mode='rt') as f:
 #print(essay_prompts)
 
 
-def word_count_featurizer(feature_counter, essay):
+def word_count_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds word count as a feature.
   '''

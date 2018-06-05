@@ -97,6 +97,7 @@ def main():
 
   for essay_set in all_essays.keys():
   # for essay_set in [1]:
+    #print(essay_set)
     print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
     essays = all_essays[essay_set]
     scores = all_scores[essay_set]

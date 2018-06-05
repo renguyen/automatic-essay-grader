@@ -15,7 +15,7 @@ from tqdm import tqdm
 from featurizers import *
 from util import *
 
-MULTICLASS_NUM_RUNS = 2 
+MULTICLASS_NUM_RUNS = 1
 
 def featurize_datasets(
       essays,
@@ -103,7 +103,7 @@ def run_model(essay_set, essays, scores):
   X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
   featurizers = [ 
-                  word_count_featurizer,
+                  # word_count_featurizer,
                   # avg_word_len_featurizer,
                   # sentence_count_featurizer,
                   # spell_checker_featurizer,
@@ -112,7 +112,10 @@ def run_model(essay_set, essays, scores):
                   # min_max_word_len_featurizer,
                   # ngram_featurizer,
                   # pos_ngram_featurizer,
-                  # high_vocab_count_featurizer
+                  # high_vocab_count_featurizer,
+                  essay_prompt_similarity_featurizer,
+                  # unique_word_count_featurizer,
+                  # quotes_count_featurizer
                 ]
 
   train_result = train_models(train_essays=X_train, 

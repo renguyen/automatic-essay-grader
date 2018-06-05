@@ -22,7 +22,16 @@ with open('vocab.txt', mode='rt') as f:
   for line in csv.reader(f, delimiter='\t'):
     vocab_words.append(line[0])
 
-def word_count_featurizer(feature_counter, essay, essay_set=None):
+
+essay_prompts = []
+with open('prompts.txt', mode='rt') as f: 
+  for line in csv.reader(f, delimiter='\t'):
+    essay_prompts.append(line)
+
+#print(essay_prompts)
+
+
+def word_count_featurizer(feature_counter, essay):
   '''
   Adds word count as a feature.
   '''

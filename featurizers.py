@@ -6,7 +6,6 @@ from nltk.corpus import stopwords
 from enchant.checker import SpellChecker
 import sys
 import string
-import spacy
 import pdb
 import csv
 import os
@@ -17,8 +16,7 @@ sys.setdefaultencoding('utf-8')
 
 stopWords = set(stopwords.words('english'))
 
-nlp = spacy.load('en_core_web_sm')
-
+# Read list of high vocab words
 vocab_words = []
 with open('vocab.txt', mode='rt') as f:
   for line in csv.reader(f, delimiter='\t'):
@@ -47,31 +45,18 @@ def sentence_count_featurizer(feature_counter, essay):
   Adds sentence count as a feature.
   '''
   try:
-   feature_counter['sentence_count'] = len(sent_tokenize(essay))
+    sentences = sent_tokenize(essay)
+    feature_counter['sentence_count'] = len(sentences)
+    min_len = float('inf')
+    max_len = float('-inf')
+    for sentence in sentences:
+      sentence_len = len(sentence.split())
+      feature_counter['sentence_len_%d' % sentence_len] += 1
+      min_len = min(min_len, sentence_len)
+      max_len = max(max_len, sentence_len)
+    feature_counter['sentence_len_range'] = max_len - min_len
   except UnicodeDecodeError, e:
-   pdb.set_trace()
-  # sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
-  # feature_counter['sentence_count'] = sentences
-
-  # try:
-  #   doc = nlp(essay.decode('utf-8'))
-  # except UnicodeDecodeError, e:
-  #   pdb.set_trace()
-
-  feature_counter[1] = 1
-  # sentences = [sent.string.strip() for sent in doc.sents]
-  # feature_counter['sentence_count'] = len(sentences)
-
-  # min_len = float('inf')
-  # max_len = float('-inf')
-
-  # for sentence in sentences:
-  #   sentence_len = len(sentence.split())
-  #   feature_counter['sentence_len_%d' % sentence_len] += 1
-  #   min_len = min(min_len, sentence_len)
-  #   max_len = max(max_len, sentence_len)
-
-  # feature_counter['sentence_len_range'] = max_len - min_len
+    print('error parsing sentences for essay:\n %s' % essay)
 
 def spell_checker_featurizer(feature_counter, essay):
   chkr = SpellChecker("en_UK","en_US")

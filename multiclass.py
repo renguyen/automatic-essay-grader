@@ -105,15 +105,15 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
     featurizers = [ 
-                    # word_count_featurizer,
-                    # avg_word_len_featurizer,
+                    word_count_featurizer,
+                    avg_word_len_featurizer,
                     sentence_count_featurizer,
-                    # spell_checker_featurizer,
-                    # punctuation_count_featurizer,
-                    # stopword_count_featurizer,
-                    # min_max_word_len_featurizer,
-                    # ngram_featurizer
-                    # high_vocab_count_featurizer
+                    spell_checker_featurizer,
+                    punctuation_count_featurizer,
+                    stopword_count_featurizer,
+                    min_max_word_len_featurizer,
+                    ngram_featurizer,
+                    high_vocab_count_featurizer
                   ]
 
     train_result = train_models(train_essays=X_train, 

@@ -134,7 +134,7 @@ def main():
     for i in range(len(predictions)):
       predictions[i] = round(predictions[i])
 
-    
+
     print('true | predicted')
     for i, prediction in enumerate(predictions):
       print('%f | %f' % (y_test[i], prediction))
@@ -156,7 +156,7 @@ def main():
     predictions = lab_enc.fit_transform(predictions)
 
     cohen_kappa = cohen_kappa_score(y_test, predictions)
-    #print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
+    print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
 
     metrics.append((mse, cohen_kappa))
 

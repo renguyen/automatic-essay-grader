@@ -91,22 +91,6 @@ def predict(test_set, featurizers, vectorizer, scaler, model):
 
 ###########################################################################
 
-def get_accuracy(test, predictions):
-  num_right = 0.0
-  for i, correct in enumerate(test):
-    if correct == predictions[i]:
-      num_right += 1
-
-  return num_right / len(test)
-
-def print_metrics(metrics):
-  print('\n\n{0:9s} {1:15s} {2:15s}'.format('set', 'accuracy', 'cohen'))
-  for set_id, metric in enumerate(metrics):
-    accuracy, cohen_kappa = metric
-    print('{0:2d} {1:15f} {2:15f}'.format(set_id+1, accuracy, cohen_kappa))
-
-###########################################################################
-
 def main():
   all_essays, all_scores = read_data()
   metrics = []

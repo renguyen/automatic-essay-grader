@@ -31,13 +31,14 @@ def featurize_datasets(
       featurizer(feature_counter, essay_text)
     essay_features.append(feature_counter)
 
-  essay_features_matrix = []
-  # If we haven't been given a Vectorizer or Scaler, create one and fit it to all the feature counters.
+  # If we haven't been given a Vectorizer or Scaler, 
+  # create one and fit it to all the feature counters.
   if vectorizer == None:
     vectorizer = DictVectorizer(sparse=True)
   if scaler == None:
     scaler = preprocessing.StandardScaler()
 
+  essay_features_matrix = []
   if train:
     essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
     # scaler.fit(essay_features_matrix)
@@ -90,22 +91,6 @@ def predict(test_set, featurizers, vectorizer, scaler, model):
 
 ###########################################################################
 
-def get_accuracy(test, predictions):
-  num_right = 0.0
-  for i, correct in enumerate(test):
-    if correct == predictions[i]:
-      num_right += 1
-
-  return num_right / len(test)
-
-def print_metrics(metrics):
-  print('\n\n{0:9s} {1:15s} {2:15s}'.format('set', 'accuracy', 'cohen'))
-  for set_id, metric in enumerate(metrics):
-    accuracy, cohen_kappa = metric
-    print('{0:2d} {1:15f} {2:15f}'.format(set_id, accuracy, cohen_kappa))
-
-###########################################################################
-
 def main():
   all_essays, all_scores = read_data()
   metrics = []
@@ -128,6 +113,7 @@ def main():
                     # stopword_count_featurizer,
                     # min_max_word_len_featurizer,
                     # ngram_featurizer
+                    # high_vocab_count_featurizer
                   ]
 
     train_result = train_models(train_essays=X_train, 
@@ -140,15 +126,14 @@ def main():
                           scaler=train_result['scaler'], 
                           model=train_result['model'])
 
-    # print('true | predicted')
-    # for i, prediction in enumerate(predictions):
-    #   print('%d | %d' % (y_test[i], prediction))
+    print('true | predicted')
+    for i, prediction in enumerate(predictions):
+      print('%d | %d' % (y_test[i], prediction))
 
     accuracy = get_accuracy(y_test, predictions)
     cohen_kappa = cohen_kappa_score(y_test, predictions)
     print('Accuracy for set %d: %f' % (essay_set, accuracy))
     print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
-
     metrics.append((accuracy, cohen_kappa))
 
   print_metrics(metrics)

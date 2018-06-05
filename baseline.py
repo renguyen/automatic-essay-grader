@@ -4,7 +4,8 @@ from collections import Counter, defaultdict
 import numpy as np 
 import nltk
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.linear_model import BayesianRidge, LinearRegression 
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.svm import LinearSVC
 from sklearn.metrics import cohen_kappa_score
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
@@ -13,48 +14,7 @@ import pdb
 import re
 
 from util import *
-
-###########################################################################
-#                                                                         #
-#                             FEATURIZERS                                 #
-#                                                                         #
-###########################################################################
-
-def word_count_featurizer(feature_counter, essay):
-  '''
-  Adds word count as a feature.
-  '''
-  word_count = len(essay.split(' '))
-  feature_counter['word_count'] = word_count
-
-def char_count_featurizer(feature_counter, essay):
-  '''
-  Adds character count as a feature.
-  '''
-  feature_counter['character_count'] = len(essay)
-
-def avg_word_len_featurizer(feature_counter, essay):
-  '''
-  Adds the average length of the words as a feature.
-  '''
-  essay_without_puncutation = essay.translate(None, string.punctuation)
-  words = essay_without_puncutation.split()
-  lengths = 0.0
-  for word in words:
-    lengths += len(word)
-  feature_counter['avg_word_len'] = lengths / len(words)
-
-def sentence_count_featurizer(feature_counter, essay):
-  '''
-  Adds sentence count as a feature.
-  '''
-  #try:
-  #  feature_counter['sentence_count'] = len(nltk.sent_tokenize(essay))
-  #except UnicodeDecodeError, e:
-  #  pdb.set_trace()
-  sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
-  feature_counter['sentence_count'] = sentences
-
+from featurizers import *
 
 def featurize_datasets(
       essays_set,
@@ -83,7 +43,7 @@ def train_models(
         train_essays,
         train_scores,
         featurizers,
-        model_factory=lambda: LinearRegression(),
+        model_factory=lambda: OneVsRestClassifier(LinearSVC(random_state=0)),
         verbose=True):
   if verbose: print('Featurizing')
   train_X, vectorizer = featurize_datasets(essays_set=train_essays, featurizers=featurizers)
@@ -107,27 +67,44 @@ def predict(test_set, featurizers, vectorizer, model):
 ###########################################################################
 
 def main():
-  essays, avg_scores = read_data()
+  all_essays, all_scores = read_data()
+  metrics = []
 
-  # Split data into test and train
-  X_train, X_test, y_train, y_test = train_test_split(essays, avg_scores, train_size=0.7)
+  for essay_set in all_essays.keys():
+  # for essay_set in [1]:
+    print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
+    essays = all_essays[essay_set]
+    scores = all_scores[essay_set]
 
-  featurizers = [ 
-                  word_count_featurizer,
-                  char_count_featurizer,
-                  avg_word_len_featurizer,
-                  sentence_count_featurizer
-                ]
+    # Split data into test and train
+    X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
-  train_result = train_models(train_essays=X_train, train_scores=y_train, featurizers=featurizers, verbose=True)
-  predictions = predict(test_set=X_test, featurizers=featurizers, vectorizer=train_result['vectorizer'], model=train_result['model'])
-  print(predictions)
+    featurizers = [ 
+                    word_count_featurizer,
+                    avg_word_len_featurizer,
+                    sentence_count_featurizer
+                  ]
 
-  lab_enc = preprocessing.LabelEncoder()
-  y_test = lab_enc.fit_transform(y_test)
-  predictions = lab_enc.fit_transform(predictions)
+    train_result = train_models(train_essays=X_train, 
+                                train_scores=y_train, 
+                                featurizers=featurizers, 
+                                verbose=True)
+    predictions = predict(test_set=X_test, 
+                          featurizers=featurizers, 
+                          vectorizer=train_result['vectorizer'], 
+                          model=train_result['model'])
 
-  print(cohen_kappa_score(y_test, predictions))  
+    # print('true | predicted')
+    # for i, prediction in enumerate(predictions):
+    #   print('%d | %d' % (y_test[i], prediction))
+
+    accuracy = get_accuracy(y_test, predictions)
+    cohen_kappa = cohen_kappa_score(y_test, predictions)
+    print('Accuracy for set %d: %f' % (essay_set, accuracy))
+    print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
+    metrics.append((accuracy, cohen_kappa))
+
+  print_metrics(metrics) 
 
 
 if __name__ == "__main__":

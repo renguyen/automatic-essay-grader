@@ -111,7 +111,7 @@ def main():
   metrics = []
 
   for essay_set in all_essays.keys():
-  # for essay_set in [1]:
+  # for essay_set in [6]:
     print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
     essays = all_essays[essay_set]
     scores = all_scores[essay_set]
@@ -119,20 +119,15 @@ def main():
     # Split data into test and train
     X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
-    # X_train = X_train[:300]
-    # X_test = X_test[:50]
-    # y_train = y_train[:300]
-    # y_test = y_test[:50]
-
     featurizers = [ 
-                    word_count_featurizer,
-                    avg_word_len_featurizer,
+                    # word_count_featurizer,
+                    # avg_word_len_featurizer,
                     sentence_count_featurizer,
                     # spell_checker_featurizer,
-                    punctuation_count_featurizer,
-                    stopword_count_featurizer,
-                    min_max_word_len_featurizer,
-                    ngram_featurizer
+                    # punctuation_count_featurizer,
+                    # stopword_count_featurizer,
+                    # min_max_word_len_featurizer,
+                    # ngram_featurizer
                   ]
 
     train_result = train_models(train_essays=X_train, 

@@ -1,3 +1,4 @@
+# This Python file uses the following encoding: utf-8
 # Common functions shared across all files.
 import os
 import csv
@@ -40,7 +41,23 @@ def read_data():
       essay_set = int(line[1])
       score = int(line[6])
 
-      essays[essay_set].append((essay_id, line[2]))
+      essay_text = line[2].replace('\x85', '...')
+      essay_text = essay_text.replace('\x91', '\'')
+      essay_text = essay_text.replace('\x92', '\'')
+      essay_text = essay_text.replace('\x93', '"')
+      essay_text = essay_text.replace('\x94', '"')
+      essay_text = essay_text.replace('\x96', '--')
+      essay_text = essay_text.reaplce('\xed', 'í')
+      essay_text = essay_text.replace('\xfc', 'ü')
+      essay_text = essay_text.replace('\xb6', '')
+      essay_text = essay_text.replace('\xb0', '°')
+      essay_text = essay_text.replace('\xe2\x80\x99', '\'')
+      essay_text = essay_text.replace('\xe2\x80\x9c', '')
+      essay_text = essay_text.replace('\xe2\x80', '"')
+      essay_text = essay_text.replace('\x9d', '"')
+      essay_text = essay_text.replace('""', '"')
+
+      essays[essay_set].append((essay_id, essay_text))
       scores[essay_set].append(score)
 
     return essays, scores

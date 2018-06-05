@@ -96,8 +96,6 @@ def main():
   metrics = []
 
   for essay_set in all_essays.keys():
-  # for essay_set in [1]:
-    #print(essay_set)
     print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
     essays = all_essays[essay_set]
     scores = all_scores[essay_set]
@@ -127,9 +125,9 @@ def main():
                           scaler=train_result['scaler'], 
                           model=train_result['model'])
 
-    print('true | predicted')
-    for i, prediction in enumerate(predictions):
-      print('%d | %d' % (y_test[i], prediction))
+    # print('true | predicted')
+    # for i, prediction in enumerate(predictions):
+    #   print('%d | %d' % (y_test[i], prediction))
 
     accuracy = get_accuracy(y_test, predictions)
     cohen_kappa = cohen_kappa_score(y_test, predictions)

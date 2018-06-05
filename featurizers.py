@@ -121,7 +121,7 @@ def ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
 
     feature_counter[key.strip()] += 1
 
-def pos_ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
+def pos_ngram_featurizer(feature_counter, essay, ngrams=3, essay_set=None):
   '''
   Adds part of speech ngrams as a feature. 
   '''

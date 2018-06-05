@@ -15,6 +15,7 @@ from tqdm import tqdm
 from featurizers import *
 from util import *
 
+BASELINE_NUM_RUNS = 5 
 
 def featurize_datasets(
       essays,
@@ -104,7 +105,16 @@ def predict(test_set, featurizers, vectorizer, scaler, model, essay_set):
 
 def main():
   all_essays, all_scores = read_data()
-  metrics = []
+  metrics = [
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+            ]
 
   for essay_set in all_essays.keys():
     print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
@@ -140,7 +150,9 @@ def main():
     cohen_kappa = cohen_kappa_score(y_test, predictions)
     print('Accuracy for set %d: %f' % (essay_set, accuracy))
     print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
-    metrics.append((accuracy, cohen_kappa))
+    metrics_index = essay_set - 1 
+    metrics[metrics_index[0]].append(accuracy)
+    metrics[metrics_index[1]].append(cohen_kappa)
 
   print_metrics_with_accuracy(metrics)
 

@@ -75,7 +75,7 @@ def get_accuracy(test, predictions):
 
   return num_right / len(test)
 
-def print_metrics(metrics):
+def print_metrics_with_accuracy(metrics):
   print('\n\n{0:9s} {1:15s} {2:15s}'.format('set', 'accuracy', 'cohen'))
   for set_id, metric in enumerate(metrics):
     accuracy, cohen_kappa = metric

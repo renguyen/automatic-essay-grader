@@ -17,35 +17,32 @@ from util import *
 
 
 def featurize_datasets(
-      essays_set,
+      essays,
+      essay_set,
       featurizers=[word_count_featurizer],
       vectorizer=None,
       scaler=None,
       train=True):
   # Create feature counters for each essay.
   essay_features = []
-  for e in tqdm(range(len(essays_set))):
-    essay_id, essay_text = essays_set[e]
+  for e in tqdm(range(len(essays))):
+    essay_id, essay_text = essays[e]
     feature_counter = defaultdict(float)
     for featurizer in featurizers:
-      featurizer(feature_counter, essay_text)
+      featurizer(feature_counter=feature_counter, essay=essay_text, essay_set=essay_set)
     essay_features.append(feature_counter)
 
-  # If we haven't been given a Vectorizer or Scaler, 
-  # create one and fit it to all the feature counters.
+  essay_features_matrix = []
+  # If we haven't been given a Vectorizer or Scaler, create one and fit it to all the feature counters.
   if vectorizer == None:
     vectorizer = DictVectorizer(sparse=True)
   if scaler == None:
     scaler = preprocessing.StandardScaler()
 
-  essay_features_matrix = []
   if train:
-    essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()
-    # scaler.fit(essay_features_matrix)
-    
+    essay_features_matrix = vectorizer.fit_transform(essay_features).toarray()    
   else:
     essay_features_matrix = vectorizer.transform(essay_features).toarray()
-    # essay_features_matrix = scaler.transform(essay_features_matrix)
 
   return essay_features_matrix, vectorizer, scaler
 
@@ -55,12 +52,18 @@ def train_models(
         train_essays,
         train_scores,
         featurizers,
+        essay_set,
         model_factory=lambda: OneVsRestClassifier(LinearSVC(random_state=0)),
         verbose=True):
   if verbose: 
     print('Featurizing')
     start = datetime.datetime.now()
-  train_X, vectorizer, scaler = featurize_datasets(essays_set=train_essays, featurizers=featurizers, vectorizer=None, scaler=None, train=True)
+  train_X, vectorizer, scaler = featurize_datasets(essays=train_essays, 
+                                                   featurizers=featurizers, 
+                                                   vectorizer=None, 
+                                                   scaler=None, 
+                                                   train=True,
+                                                   essay_set=essay_set)
 
   if verbose:
     end = datetime.datetime.now()
@@ -83,10 +86,15 @@ def train_models(
     'scaler': scaler
   }       
 
-def predict(test_set, featurizers, vectorizer, scaler, model):
+def predict(test_set, featurizers, vectorizer, scaler, model, essay_set):
   print('Predicting')
 
-  test_X, _, __ = featurize_datasets(essays_set=test_set, featurizers=featurizers, vectorizer=vectorizer, scaler=scaler, train=False)
+  test_X, _, __ = featurize_datasets(essays=test_set, 
+                                     featurizers=featurizers, 
+                                     vectorizer=vectorizer, 
+                                     scaler=scaler, 
+                                     train=False,
+                                     essay_set=essay_set)
   return model.predict(test_X)
 
 ###########################################################################
@@ -95,8 +103,8 @@ def main():
   all_essays, all_scores = read_data()
   metrics = []
 
-  for essay_set in all_essays.keys():
-  # for essay_set in [7,8]:
+  # for essay_set in all_essays.keys():
+  for essay_set in [1]:
     print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
     essays = all_essays[essay_set]
     scores = all_scores[essay_set]
@@ -106,25 +114,27 @@ def main():
 
     featurizers = [ 
                     word_count_featurizer,
-                    avg_word_len_featurizer,
-                    sentence_count_featurizer,
-                    spell_checker_featurizer,
-                    punctuation_count_featurizer,
-                    stopword_count_featurizer,
-                    min_max_word_len_featurizer,
-                    ngram_featurizer,
-                    high_vocab_count_featurizer
+                    # avg_word_len_featurizer,
+                    # sentence_count_featurizer,
+                    # spell_checker_featurizer,
+                    # punctuation_count_featurizer,
+                    # stopword_count_featurizer,
+                    # min_max_word_len_featurizer,
+                    # ngram_featurizer,
+                    # high_vocab_count_featurizer
                   ]
 
     train_result = train_models(train_essays=X_train, 
                                 train_scores=y_train, 
                                 featurizers=featurizers, 
-                                verbose=True)
+                                verbose=True, 
+                                essay_set=essay_set)
     predictions = predict(test_set=X_test, 
                           featurizers=featurizers, 
                           vectorizer=train_result['vectorizer'], 
                           scaler=train_result['scaler'], 
-                          model=train_result['model'])
+                          model=train_result['model'],
+                          essay_set=essay_set)
 
     # print('true | predicted')
     # for i, prediction in enumerate(predictions):
@@ -136,7 +146,7 @@ def main():
     print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
     metrics.append((accuracy, cohen_kappa))
 
-  print_metrics(metrics)
+  print_metrics_with_accuracy(metrics)
 
 
 if __name__ == "__main__":

@@ -31,14 +31,14 @@ with open('prompts.txt', mode='rt') as f:
 #print(essay_prompts)
 
 
-def word_count_featurizer(feature_counter, essay):
+def word_count_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds word count as a feature.
   '''
   word_count = len(essay.split(' '))
   feature_counter['word_count'] = word_count
 
-def avg_word_len_featurizer(feature_counter, essay):
+def avg_word_len_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds the average length of the words as a feature.
   '''
@@ -49,7 +49,7 @@ def avg_word_len_featurizer(feature_counter, essay):
     lengths += len(word)
   feature_counter['avg_word_len'] = lengths / len(words)
 
-def sentence_count_featurizer(feature_counter, essay):
+def sentence_count_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds sentence count as a feature.
   '''
@@ -67,7 +67,7 @@ def sentence_count_featurizer(feature_counter, essay):
   except UnicodeDecodeError, e:
     print('error parsing sentences for essay:\n %s' % essay)
 
-def spell_checker_featurizer(feature_counter, essay):
+def spell_checker_featurizer(feature_counter, essay, essay_set=None):
   chkr = SpellChecker("en_UK","en_US")
   chkr.set_text(essay)
   counter = 0
@@ -76,14 +76,14 @@ def spell_checker_featurizer(feature_counter, essay):
   #print(counter)
   feature_counter['spell_checker'] = counter
 
-def punctuation_count_featurizer(feature_counter, essay):
+def punctuation_count_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds different punctuation counts as features.
   '''
   feature_counter['question_mark_count'] = essay.count("?")
   feature_counter['exclamation_mark_count'] = essay.count("!")
 
-def stopword_count_featurizer(feature_counter, essay):
+def stopword_count_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds number of stopgwords (as defined by NLTK corpus) as features.
   '''
@@ -93,7 +93,7 @@ def stopword_count_featurizer(feature_counter, essay):
     if word in stopWords:
       feature_counter['stopword_count'] += 1
 
-def min_max_word_len_featurizer(feature_counter, essay):
+def min_max_word_len_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds the minimum and maximum word lengths in the essay, ignoring stopwords
   and censored pronouns.
@@ -108,32 +108,37 @@ def min_max_word_len_featurizer(feature_counter, essay):
   feature_counter['min_word_len'] = min_len
   feature_counter['max_word_len'] = max_len
 
-def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True):
+def ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
   '''
-  Adds ngrams as a feature. plain=True will add normal word ngrams as a feature
-  and pos=True will also add POS ngrams as a feature.
+  Adds ngrams as a feature. 
+  '''
+  essay = '<S> ' + essay + ' </S>'
+  words = essay.split()
+  for i in range(len(words) - (ngrams - 1)):
+    key = words[i] + ' '
+    for j in range(1, ngrams):
+      key += words[i+j] + ' '
+
+    feature_counter[key.strip()] += 1
+
+def pos_ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
+  '''
+  Adds part of speech ngrams as a feature. 
   '''
   essay_without_punctuation = essay.translate(None, '!"#$%&\'()*+,-./:;<=>?[\\]^_`{|}~')
   pos_tags = pos_tag(essay_without_punctuation.split())
   pos_tags = [('<S>', '<S>')] + pos_tags + [('</S>', '</S>')]
   for i in range(len(pos_tags) - (ngrams - 1)):
-    norm_key = pos_tags[i][0] + ' '
-    pos_key = pos_tags[i][1] + ' '
+    key = pos_tags[i][1] + ' '
     for j in range(1, ngrams):
-      if plain:
-        norm_key += pos_tags[i+j][0] + ' '
-      if pos:
-        if pos_tags[i+j][0].startswith('@'):  # Personally identifying nouns were removed
-          pos_key += 'NN '
-        else:
-          pos_key += pos_tags[i+j][1] + ' '
+      if pos_tags[i+j][0].startswith('@'):  # Personally identifying nouns were removed
+        key += 'NN '
+      else:
+        key += pos_tags[i+j][1] + ' '
 
-    if plain:
-      feature_counter[norm_key.strip()] += 1
-    if pos:
-      feature_counter[pos_key.strip()] += 1
+    feature_counter[key.strip()] += 1
 
-def high_vocab_count_featurizer(feature_counter, essay):
+def high_vocab_count_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds number of "high vocabulary words" as a feature. 
   TODO: determine high vocab words.
@@ -144,7 +149,7 @@ def high_vocab_count_featurizer(feature_counter, essay):
       feature_counter[word] += 1
       #print('%s | %d' % (word, feature_counter[word]))
 
-def essay_prompt_similarity_featurizer(feature_counter, essay):
+def essay_prompt_similarity_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds score for how similar an essay is to the score.
   '''

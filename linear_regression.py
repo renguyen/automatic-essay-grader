@@ -14,6 +14,7 @@ from tqdm import tqdm
 from util import *
 from featurizers import *
 
+LINEAR_REG_NUM_RUNS = 1
 
 def featurize_datasets(
       essays,
@@ -95,85 +96,105 @@ def predict(test_set, featurizers, vectorizer, scaler, model, essay_set):
                                      essay_set=essay_set)
   return model.predict(test_X)
 
+def run_model(essay_set, essays, scores):
+  # Split data into test and train
+  X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
+
+  featurizers = [ 
+                  word_count_featurizer,
+                  # avg_word_len_featurizer,
+                  # sentence_count_featurizer,
+                  #spell_checker_featurizer,
+                  # punctuation_count_featurizer,
+                  # stopword_count_featurizer,
+                  # min_max_word_len_featurizer,
+                  #ngram_featurizer,
+                  #pos_ngram_featurizer
+                ]
+
+  train_result = train_models(train_essays=X_train, 
+                              train_scores=y_train, 
+                              featurizers=featurizers, 
+                              verbose=True, 
+                              essay_set=essay_set)
+  predictions = predict(test_set=X_test, 
+                        featurizers=featurizers, 
+                        vectorizer=train_result['vectorizer'], 
+                        scaler=train_result['scaler'], 
+                        model=train_result['model'],
+                        essay_set=essay_set)
+  return y_test, predictions
+
 ###########################################################################
 
 def print_metrics(metrics):
   print('\n\n{0:10s} {1:17s} {2:15s}'.format('set', 'mse', 'cohen'))
   for set_id, metric in enumerate(metrics):
-    mse, cohen_kappa = metric
-    print('{0:2d} {1:15f} {2:15f}'.format(set_id+1, mse, cohen_kappa))
+    mses, cohen_kappas = metric
+    avg_mse = sum(mses) / len(mses)
+    avg_cohen = sum(cohen_kappas) / len(cohen_kappas)
+    print('{0:2d} {1:15f} {2:15f}'.format(set_id+1, avg_mse, avg_cohen))
 
 ###########################################################################
 
 def main():
-  metrics = []
+  metrics = [
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+            ]
   all_essays, all_scores = read_data()
 
-  # for essay_set in all_essays.keys():
-  for essay_set in [1]:
-    print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
-    essays = all_essays[essay_set]
-    scores = all_scores[essay_set]
+  for run in range(LINEAR_REG_NUM_RUNS):
+    print('\n\n' + '='*30 + ' RUN #{} '.format(run+1) + '='*30 + '\n')
 
-    # Split data into test and train
-    X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
+    for essay_set in all_essays.keys():
+    # for essay_set in [1]:
+      print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
+      essays = all_essays[essay_set]
+      scores = all_scores[essay_set]
 
-    featurizers = [ 
-                    word_count_featurizer,
-                    avg_word_len_featurizer,
-                    sentence_count_featurizer,
-                    #spell_checker_featurizer,
-                    punctuation_count_featurizer,
-                    stopword_count_featurizer,
-                    min_max_word_len_featurizer,
-                    #ngram_featurizer,
-                    #pos_ngram_featurizer
-                  ]
+      y_test, predictions = run_model(essay_set, essays, scores)
 
-    train_result = train_models(train_essays=X_train, 
-                                train_scores=y_train, 
-                                featurizers=featurizers, 
-                                verbose=True, 
-                                essay_set=essay_set)
-    predictions = predict(test_set=X_test, 
-                          featurizers=featurizers, 
-                          vectorizer=train_result['vectorizer'], 
-                          scaler=train_result['scaler'], 
-                          model=train_result['model'],
-                          essay_set=essay_set)
+      mse = mean_squared_error(y_test, predictions)
+      print('MSE for set %d: %f' % (essay_set, mse))
 
-    mse = mean_squared_error(y_test, predictions)
-    print('MSE for set %d: %f' % (essay_set, mse))
+      #ROUND PREDICTIONS: 
+      for i in range(len(predictions)):
+        predictions[i] = round(predictions[i])
 
-    #ROUND PREDICTIONS: 
-    for i in range(len(predictions)):
-      predictions[i] = round(predictions[i])
+      
+      print('true | predicted')
+      for i, prediction in enumerate(predictions):
+        print('%f | %f' % (y_test[i], prediction))
 
-    
-    print('true | predicted')
-    for i, prediction in enumerate(predictions):
-      print('%f | %f' % (y_test[i], prediction))
-
-    #WEIGHTS:
-    #print('Feature coefficients for set %d:' % essay_set)
-    #print('Word count:  %f' % train_result['model'].coef_[0])
-    #print('Average word length:  %f' % train_result['model'].coef_[1])
-    #print('Sentence count:  %f' % train_result['model'].coef_[2])
-    #print('Spell checker:  %f' % train_result['model'].coef_[3])
-    #print('Punctuation count:  %f' % train_result['model'].coef_[3])
-    #print('Stop word count:  %f' % train_result['model'].coef_[4])
-    #print('Min Max word length:  %f' % train_result['model'].coef_[5])
-    #print('Ngrams:  %f' % train_result['model'].coef_[7])
+      #WEIGHTS:
+      #print('Feature coefficients for set %d:' % essay_set)
+      #print('Word count:  %f' % train_result['model'].coef_[0])
+      #print('Average word length:  %f' % train_result['model'].coef_[1])
+      #print('Sentence count:  %f' % train_result['model'].coef_[2])
+      #print('Spell checker:  %f' % train_result['model'].coef_[3])
+      #print('Punctuation count:  %f' % train_result['model'].coef_[3])
+      #print('Stop word count:  %f' % train_result['model'].coef_[4])
+      #print('Min Max word length:  %f' % train_result['model'].coef_[5])
+      #print('Ngrams:  %f' % train_result['model'].coef_[7])
 
 
-    lab_enc = preprocessing.LabelEncoder()
-    y_test = lab_enc.fit_transform(y_test)
-    predictions = lab_enc.fit_transform(predictions)
+      lab_enc = preprocessing.LabelEncoder()
+      y_test = lab_enc.fit_transform(y_test)
+      predictions = lab_enc.fit_transform(predictions)
 
-    cohen_kappa = cohen_kappa_score(y_test, predictions)
-    #print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
+      cohen_kappa = cohen_kappa_score(y_test, predictions)
+      #print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
 
-    metrics.append((mse, cohen_kappa))
+      metrics_index = essay_set - 1 
+      metrics[metrics_index][0].append(mse)
+      metrics[metrics_index][1].append(cohen_kappa)
 
   print_metrics(metrics)
 

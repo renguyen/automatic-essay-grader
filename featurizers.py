@@ -154,3 +154,20 @@ def essay_prompt_similarity_featurizer(feature_counter, essay, essay_set=None):
   Adds score for how similar an essay is to the score.
   '''
   pass
+
+def unique_word_count_featurizer(feature_counter, essay, essay_set=None):
+  '''
+  Adds number of unique words in the essay.
+  '''
+  essay_without_punctuation = essay.translate(None, string.punctuation)
+  words = essay_without_punctuation.split()
+  feature_counter['unique_word_count'] = len(set(words))
+
+def quotes_count_featurizer(feature_counter, essay, essay_set=None):
+  '''
+  Adds number of times the writer quotes someone.
+  '''
+  feature_counter['question_mark_count'] = essay.count('"') / 2
+
+def bag_of_words_featurizer(feature_counter, essay, essay_set=None): 
+  pass 

@@ -47,7 +47,7 @@ def read_data():
       essay_text = essay_text.replace('\x93', '"')
       essay_text = essay_text.replace('\x94', '"')
       essay_text = essay_text.replace('\x96', '--')
-      essay_text = essay_text.reaplce('\xed', 'í')
+      essay_text = essay_text.replace('\xed', 'í')
       essay_text = essay_text.replace('\xfc', 'ü')
       essay_text = essay_text.replace('\xb6', '')
       essay_text = essay_text.replace('\xb0', '°')

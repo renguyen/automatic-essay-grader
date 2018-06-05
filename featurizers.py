@@ -108,7 +108,7 @@ def min_max_word_len_featurizer(feature_counter, essay, essay_set=None):
   feature_counter['min_word_len'] = min_len
   feature_counter['max_word_len'] = max_len
 
-def ngram_featurizer(feature_counter, essay, ngrams=2, plain=True, pos=True, essay_set=None):
+def ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
   '''
   Adds ngrams as a feature. 
   '''

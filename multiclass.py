@@ -121,6 +121,7 @@ def main():
                     # stopword_count_featurizer,
                     # min_max_word_len_featurizer,
                     # ngram_featurizer,
+                    # pos_ngram_featurizer,
                     # high_vocab_count_featurizer
                   ]
 

@@ -126,7 +126,8 @@ def main():
                     punctuation_count_featurizer,
                     stopword_count_featurizer,
                     min_max_word_len_featurizer,
-                    #ngram_featurizer
+                    #ngram_featurizer,
+                    #pos_ngram_featurizer
                   ]
 
     train_result = train_models(train_essays=X_train, 

@@ -46,17 +46,17 @@ def sentence_count_featurizer(feature_counter, essay):
   '''
   Adds sentence count as a feature.
   '''
-  # try:
-  #  feature_counter['sentence_count'] = len(sent_tokenize(essay))
-  # except UnicodeDecodeError, e:
-  #  pdb.set_trace()
+  try:
+   feature_counter['sentence_count'] = len(sent_tokenize(essay))
+  except UnicodeDecodeError, e:
+   pdb.set_trace()
   # sentences = essay.count(('?<!\.)\.(?!\.)')) + essay.count("?") + essay.count("!")
   # feature_counter['sentence_count'] = sentences
 
-  try:
-    doc = nlp(essay.decode('utf-8'))
-  except UnicodeDecodeError, e:
-    pdb.set_trace()
+  # try:
+  #   doc = nlp(essay.decode('utf-8'))
+  # except UnicodeDecodeError, e:
+  #   pdb.set_trace()
 
   feature_counter[1] = 1
   # sentences = [sent.string.strip() for sent in doc.sents]

@@ -99,8 +99,8 @@ def run_model(essay_set, essays, scores):
   # Split data into test and train
   X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
-  featurizers = [ 
-                  word_count_featurizer,
+  # featurizers = [ 
+                  # word_count_featurizer,
                   # avg_word_len_featurizer,
                   # sentence_count_featurizer,
                   # spell_checker_featurizer,
@@ -113,7 +113,16 @@ def run_model(essay_set, essays, scores):
                   # essay_prompt_similarity_featurizer,
                   # unique_word_count_featurizer,
                   # quotes_count_featurizer
-                ]
+                # ]
+  featurizers = [
+                  bag_of_words_featurizer,
+                  bag_of_pos_featurizer,
+                  essay_prompt_similarity_featurizer,
+                  word_count_featurizer,
+                  sentence_count_featurizer,
+                  avg_sentence_length_featurizer,
+                  spell_checker_featurizer,
+  ]
 
   train_result = train_models(train_essays=X_train, 
                               train_scores=y_train, 

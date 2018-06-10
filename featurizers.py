@@ -2,7 +2,7 @@
 
 import nltk
 from nltk import pos_tag
-from nltk.tokenize import sent_tokenize
+from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from enchant.checker import SpellChecker
 import sys
@@ -66,6 +66,19 @@ def sentence_count_featurizer(feature_counter, essay, essay_set=None):
       min_len = min(min_len, sentence_len)
       max_len = max(max_len, sentence_len)
     feature_counter['sentence_len_range'] = max_len - min_len
+  except UnicodeDecodeError, e:
+    print('error parsing sentences for essay:\n %s' % essay)
+
+def avg_sentence_length_featurizer(feature_counter, essay, essay_set=None):
+  '''
+  Adds sentence count as a feature.
+  '''
+  try:
+    sentences = sent_tokenize(essay)
+    sentence_lengths = 0.0
+    for sentence in sentences:
+      sentence_lengths += len(sentence.split())
+    feature_counter['avg_sentence_length'] = sentence_lengths / len(sentences)
   except UnicodeDecodeError, e:
     print('error parsing sentences for essay:\n %s' % essay)
 
@@ -160,7 +173,7 @@ def stem_tokens(tokens):
 
 def normalize(text):
   '''remove punctuation, lowercase, stem'''
-  return stem_tokens(nltk.word_tokenize(text.lower().translate(remove_punctuation_map)))
+  return stem_tokens(word_tokenize(text.lower().translate(remove_punctuation_map)))
 
 stemmer = nltk.stem.porter.PorterStemmer()
 remove_punctuation_map = dict((ord(char), None) for char in string.punctuation)
@@ -192,4 +205,22 @@ def quotes_count_featurizer(feature_counter, essay, essay_set=None):
   feature_counter['quotes_count'] = essay.count('"') / 2
 
 def bag_of_words_featurizer(feature_counter, essay, essay_set=None): 
-  pass 
+  '''
+  Adds the different words and how many times they appear as a feature.
+  '''
+  words = word_tokenize(text.lower().translate(remove_punctuation_map))
+  for word in words:
+    feature_counter[word] += 1
+
+def bag_of_pos_featurizer(feature_counter, essay, essay_set=None):
+  '''
+  Adds the different POS and how many times they appear as a feature.
+  '''
+  essay_without_punctuation = essay.translate(None, '!"#$%&\'()*+,-./:;<=>?[\\]^_`{|}~')
+  pos_tags = pos_tag(essay_without_punctuation.split())
+  for pos_tag in pos_tags:
+    if pos_tag[0].startswith('@'):  # Personally identifying nouns were removed
+      feature_counter['NN'] += 1
+    else:
+      feature_counter[pos_tag[1]] += 1
+

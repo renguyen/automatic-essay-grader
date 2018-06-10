@@ -219,9 +219,9 @@ def bag_of_pos_featurizer(feature_counter, essay, essay_set=None):
   '''
   essay_without_punctuation = essay.translate(None, '!"#$%&\'()*+,-./:;<=>?[\\]^_`{|}~')
   pos_tags = pos_tag(essay_without_punctuation.split())
-  for pos_tag in pos_tags:
-    if pos_tag[0].startswith('@'):  # Personally identifying nouns were removed
+  for tag in pos_tags:
+    if tag[0].startswith('@'):  # Personally identifying nouns were removed
       feature_counter['NN'] += 1
     else:
-      feature_counter[pos_tag[1]] += 1
+      feature_counter[tag[1]] += 1
 

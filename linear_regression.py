@@ -99,21 +99,31 @@ def run_model(essay_set, essays, scores):
   # Split data into test and train
   X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
-  featurizers = [ 
+<<<<<<< HEAD
+  # featurizers = [ 
+                  # word_count_featurizer,
+                  # avg_word_len_featurizer,
+                  # sentence_count_featurizer,
+                  # spell_checker_featurizer,
+                  # punctuation_count_featurizer,
+                  # stopword_count_featurizer,
+                  # min_max_word_len_featurizer,
+                  # ngram_featurizer,
+                  # pos_ngram_featurizer,
+                  # high_vocab_count_featurizer,
+                  # essay_prompt_similarity_featurizer,
+                  # unique_word_count_featurizer,
+                  # quotes_count_featurizer
+                # ]
+  featurizers = [
+                  bag_of_words_featurizer,
+                  bag_of_pos_featurizer,
+                  essay_prompt_similarity_featurizer,
                   word_count_featurizer,
-                  #avg_word_len_featurizer,
-                  #sentence_count_featurizer,
-                  #spell_checker_featurizer,
-                  #punctuation_count_featurizer,
-                  #stopword_count_featurizer,
-                  #min_max_word_len_featurizer,
-                  #ngram_featurizer,
-                  #pos_ngram_featurizer,
-                  #high_vocab_count_featurizer,
-                  #essay_prompt_similarity_featurizer,
-                  #unique_word_count_featurizer,
-                  #quotes_count_featurizer
-                ]
+                  sentence_count_featurizer,
+                  avg_sentence_length_featurizer,
+                  spell_checker_featurizer,
+  ]
 
   train_result = train_models(train_essays=X_train, 
                               train_scores=y_train, 
@@ -130,8 +140,17 @@ def run_model(essay_set, essays, scores):
 
   #WEIGHTS:
   print('Feature coefficients for set %d:' % essay_set)
-  print('Word count:  %f' % train_result['model'].coef_[0])
-  #print('Average word length:  %f' % train_result['model'].coef_[1])
+  print('Bag of Words:  %f' % train_result['model'].coef_[0])
+  print('Bag of POS:  %f' % train_result['model'].coef_[1])
+  print('Prompt Similarity:  %f' % train_result['model'].coef_[2])
+  print('Word Count:  %f' % train_result['model'].coef_[3]) 
+  print('Sentence Count:  %f' % train_result['model'].coef_[4])
+  print('Average Sentence Length:  %f' % train_result['model'].coef_[5])
+  print('Spell Checker:  %f' % train_result['model'].coef_[6])
+
+
+
+
   #print('Sentence count:  %f' % train_result['model'].coef_[2])
   #print('Spell checker:  %f' % train_result['model'].coef_[3])
   #print('Punctuation count:  %f' % train_result['model'].coef_[4])

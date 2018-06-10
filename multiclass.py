@@ -152,7 +152,7 @@ def main():
     print('\n\n' + '='*30 + ' RUN #{} '.format(run+1) + '='*30 + '\n')
 
     for essay_set in all_essays.keys():
-    # for essay_set in [1]:
+
       if essay_set is 2: continue
 
       print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')

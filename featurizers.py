@@ -123,7 +123,7 @@ def ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
 
     feature_counter[key.strip()] += 1
 
-def pos_ngram_featurizer(feature_counter, essay, ngrams=3, essay_set=None):
+def pos_ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
   '''
   Adds part of speech ngrams as a feature. 
   '''
@@ -189,7 +189,7 @@ def quotes_count_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds number of times the writer quotes someone.
   '''
-  feature_counter['question_mark_count'] = essay.count('"') / 2
+  feature_counter['quotes_count'] = essay.count('"') / 2
 
 def bag_of_words_featurizer(feature_counter, essay, essay_set=None): 
   pass 

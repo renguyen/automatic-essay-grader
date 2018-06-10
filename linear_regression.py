@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 import datetime
 import numpy as np 
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.linear_model import BayesianRidge, LinearRegression, SGDRegressor
+from sklearn.linear_model import LinearRegression, SGDRegressor
 from sklearn.metrics import cohen_kappa_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
@@ -57,7 +57,6 @@ def train_models(
         featurizers,
         essay_set,
         model_factory=lambda: LinearRegression(),
-        # model_factory=lambda: SGDRegressor(),
         verbose=True):
   if verbose: 
     print('Featurizing')
@@ -104,12 +103,16 @@ def run_model(essay_set, essays, scores):
                   word_count_featurizer,
                   # avg_word_len_featurizer,
                   # sentence_count_featurizer,
-                  #spell_checker_featurizer,
+                  # spell_checker_featurizer,
                   # punctuation_count_featurizer,
                   # stopword_count_featurizer,
                   # min_max_word_len_featurizer,
-                  #ngram_featurizer,
-                  #pos_ngram_featurizer
+                  # ngram_featurizer,
+                  # pos_ngram_featurizer,
+                  # high_vocab_count_featurizer,
+                  # essay_prompt_similarity_featurizer,
+                  # unique_word_count_featurizer,
+                  # quotes_count_featurizer
                 ]
 
   train_result = train_models(train_essays=X_train, 
@@ -169,9 +172,9 @@ def main():
         predictions[i] = round(predictions[i])
 
       
-      print('true | predicted')
-      for i, prediction in enumerate(predictions):
-        print('%f | %f' % (y_test[i], prediction))
+      # print('true | predicted')
+      # for i, prediction in enumerate(predictions):
+      #   print('%f | %f' % (y_test[i], prediction))
 
       #WEIGHTS:
       #print('Feature coefficients for set %d:' % essay_set)

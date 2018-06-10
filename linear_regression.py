@@ -99,7 +99,6 @@ def run_model(essay_set, essays, scores):
   # Split data into test and train
   X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
-<<<<<<< HEAD
   # featurizers = [ 
                   # word_count_featurizer,
                   # avg_word_len_featurizer,

@@ -209,7 +209,7 @@ def bag_of_words_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds the different words and how many times they appear as a feature.
   '''
-  words = word_tokenize(essay.lower().translate(remove_punctuation_map))
+  words = word_tokenize(essay.lower().translate(None, string.punctuation))
   for word in words:
     feature_counter[word] += 1
 

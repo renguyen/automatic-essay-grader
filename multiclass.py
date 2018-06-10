@@ -116,7 +116,10 @@ def run_model(essay_set, essays, scores):
                   high_vocab_count_featurizer,
                   essay_prompt_similarity_featurizer,
                   unique_word_count_featurizer,
-                  quotes_count_featurizer
+                  quotes_count_featurizer,
+                  bag_of_words_featurizer,
+                  bag_of_pos_featurizer,
+                  avg_sentence_length_featurizer,
                 ]
 
   train_result = train_models(train_essays=X_train, 

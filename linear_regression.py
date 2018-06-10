@@ -99,6 +99,7 @@ def run_model(essay_set, essays, scores):
   # Split data into test and train
   X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
 
+<<<<<<< HEAD
   # featurizers = [ 
                   # word_count_featurizer,
                   # avg_word_len_featurizer,
@@ -135,6 +136,33 @@ def run_model(essay_set, essays, scores):
                         scaler=train_result['scaler'], 
                         model=train_result['model'],
                         essay_set=essay_set)
+
+
+  #WEIGHTS:
+  print('Feature coefficients for set %d:' % essay_set)
+  print('Bag of Words:  %f' % train_result['model'].coef_[0])
+  print('Bag of POS:  %f' % train_result['model'].coef_[1])
+  print('Prompt Similarity:  %f' % train_result['model'].coef_[2])
+  print('Word Count:  %f' % train_result['model'].coef_[3]) 
+  print('Sentence Count:  %f' % train_result['model'].coef_[4])
+  print('Average Sentence Length:  %f' % train_result['model'].coef_[5])
+  print('Spell Checker:  %f' % train_result['model'].coef_[6])
+
+
+
+
+  #print('Sentence count:  %f' % train_result['model'].coef_[2])
+  #print('Spell checker:  %f' % train_result['model'].coef_[3])
+  #print('Punctuation count:  %f' % train_result['model'].coef_[4])
+  #print('Stop word count:  %f' % train_result['model'].coef_[5])
+  #print('Min Max word length:  %f' % train_result['model'].coef_[6])
+  #print('Ngrams:  %f' % train_result['model'].coef_[0])
+  #print('POS Ngrams:  %f' % train_result['model'].coef_[1])
+
+  #print('High vocab count:  %f' % train_result['model'].coef_[7])
+
+
+
   return y_test, predictions
 
 ###########################################################################
@@ -152,7 +180,7 @@ def print_metrics(metrics):
 def main():
   metrics = [
               ([], []),
-              ([], []),
+              ([1], [1]),
               ([], []),
               ([], []),
               ([], []),
@@ -166,7 +194,8 @@ def main():
     print('\n\n' + '='*30 + ' RUN #{} '.format(run+1) + '='*30 + '\n')
 
     for essay_set in all_essays.keys():
-    # for essay_set in [1]:
+    #for essay_set in [3]:
+      if essay_set is 2: continue
       print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
       essays = all_essays[essay_set]
       scores = all_scores[essay_set]
@@ -185,16 +214,7 @@ def main():
       # for i, prediction in enumerate(predictions):
       #   print('%f | %f' % (y_test[i], prediction))
 
-      #WEIGHTS:
-      #print('Feature coefficients for set %d:' % essay_set)
-      #print('Word count:  %f' % train_result['model'].coef_[0])
-      #print('Average word length:  %f' % train_result['model'].coef_[1])
-      #print('Sentence count:  %f' % train_result['model'].coef_[2])
-      #print('Spell checker:  %f' % train_result['model'].coef_[3])
-      #print('Punctuation count:  %f' % train_result['model'].coef_[3])
-      #print('Stop word count:  %f' % train_result['model'].coef_[4])
-      #print('Min Max word length:  %f' % train_result['model'].coef_[5])
-      #print('Ngrams:  %f' % train_result['model'].coef_[7])
+
 
 
       lab_enc = preprocessing.LabelEncoder()

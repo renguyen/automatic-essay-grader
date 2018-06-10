@@ -139,6 +139,7 @@ def run_model(essay_set, essays, scores):
 
 def main():
   all_essays, all_scores = read_data()
+
   metrics = [
               ([], []),
               ([1], [1]),
@@ -154,7 +155,9 @@ def main():
     print('\n\n' + '='*30 + ' RUN #{} '.format(run+1) + '='*30 + '\n')
 
     for essay_set in all_essays.keys():
+
       if essay_set is 2: continue
+
       print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
       essays = all_essays[essay_set]
       scores = all_scores[essay_set]

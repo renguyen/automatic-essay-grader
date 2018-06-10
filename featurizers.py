@@ -205,6 +205,7 @@ def quotes_count_featurizer(feature_counter, essay, essay_set=None):
   feature_counter['quotes_count'] = essay.count('"') / 2
 
 def bag_of_words_featurizer(feature_counter, essay, essay_set=None): 
+
   '''
   Adds the different words and how many times they appear as a feature.
   '''

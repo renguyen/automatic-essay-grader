@@ -189,7 +189,7 @@ def quotes_count_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds number of times the writer quotes someone.
   '''
-  feature_counter['question_mark_count'] = essay.count('"') / 2
+  feature_counter['quotes_count'] = essay.count('"') / 2
 
 def bag_of_words_featurizer(feature_counter, essay, essay_set=None): 
   pass 

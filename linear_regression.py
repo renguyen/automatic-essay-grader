@@ -148,7 +148,6 @@ def print_metrics(metrics):
   print('\n\n{0:10s} {1:17s} {2:15s}'.format('set', 'mse', 'cohen'))
   for set_id, metric in enumerate(metrics):
     mses, cohen_kappas = metric
-    pdb.set_trace()
     avg_mse = sum(mses) / len(mses)
     avg_cohen = sum(cohen_kappas) / len(cohen_kappas)
     print('{0:2d} {1:15f} {2:15f}'.format(set_id+1, avg_mse, avg_cohen))

@@ -76,7 +76,12 @@ def get_accuracy(test, predictions):
   return num_right / len(test)
 
 def print_metrics_with_accuracy(metrics):
-  print('\n\n{0:9s} {1:15s} {2:15s}'.format('set', 'accuracy', 'cohen'))
+  print('\n\n{0:8s} {1:15s} {2:18s}'.format('set', 'avg accuracy', 'avg cohen'))
   for set_id, metric in enumerate(metrics):
-    accuracy, cohen_kappa = metric
-    print('{0:2d} {1:15f} {2:15f}'.format(set_id+1, accuracy, cohen_kappa))
+    accuracies, cohen_kappas = metric
+    avg_accuracy = sum(accuracies) / len(accuracies)
+    avg_cohen = sum(cohen_kappas) / len(cohen_kappas)
+    print('{0:2d} {1:15f} {2:15f}'.format(set_id+1, avg_accuracy, avg_cohen))
+
+
+

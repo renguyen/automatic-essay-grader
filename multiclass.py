@@ -15,6 +15,7 @@ from tqdm import tqdm
 from featurizers import *
 from util import *
 
+MULTICLASS_NUM_RUNS = 1
 
 def featurize_datasets(
       essays,
@@ -97,58 +98,77 @@ def predict(test_set, featurizers, vectorizer, scaler, model, essay_set):
                                      essay_set=essay_set)
   return model.predict(test_X)
 
+def run_model(essay_set, essays, scores):
+  # Split data into test and train
+  X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
+
+  featurizers = [ 
+                  # word_count_featurizer,
+                  # avg_word_len_featurizer,
+                  # sentence_count_featurizer,
+                  # spell_checker_featurizer,
+                  # punctuation_count_featurizer,
+                  # stopword_count_featurizer,
+                  # min_max_word_len_featurizer,
+                  # ngram_featurizer,
+                  # pos_ngram_featurizer,
+                  # high_vocab_count_featurizer,
+                  essay_prompt_similarity_featurizer,
+                  # unique_word_count_featurizer,
+                  # quotes_count_featurizer
+                ]
+
+  train_result = train_models(train_essays=X_train, 
+                              train_scores=y_train, 
+                              featurizers=featurizers, 
+                              verbose=True, 
+                              essay_set=essay_set)
+  predictions = predict(test_set=X_test, 
+                        featurizers=featurizers, 
+                        vectorizer=train_result['vectorizer'], 
+                        scaler=train_result['scaler'], 
+                        model=train_result['model'],
+                        essay_set=essay_set)
+  return y_test, predictions
+
 ###########################################################################
 
 def main():
   all_essays, all_scores = read_data()
-  metrics = []
 
-  for essay_set in all_essays.keys():
-  # for essay_set in [1]:
-    print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
-    essays = all_essays[essay_set]
-    scores = all_scores[essay_set]
+  metrics = [
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+              ([], []),
+            ]
 
-    # Split data into test and train
-    X_train, X_test, y_train, y_test = train_test_split(essays, scores, train_size=0.9)
-    
+  for run in range(MULTICLASS_NUM_RUNS):
+    print('\n\n' + '='*30 + ' RUN #{} '.format(run+1) + '='*30 + '\n')
 
+    for essay_set in all_essays.keys():
+    # for essay_set in [1]:
+      print('\n\n' + '='*20 + ' Processing set {} '.format(essay_set) + '='*20 + '\n')
+      essays = all_essays[essay_set]
+      scores = all_scores[essay_set]
 
-    featurizers = [ 
-                    word_count_featurizer,
-                    avg_word_len_featurizer,
-                    sentence_count_featurizer,
-                    spell_checker_featurizer,
-                    punctuation_count_featurizer,
-                    stopword_count_featurizer,
-                    min_max_word_len_featurizer,
-                    ngram_featurizer,
-                    pos_ngram_featurizer,
-                    high_vocab_count_featurizer 
-                    #essay_prompt_similarity_featurizer
-                  ]
+      y_test, predictions = run_model(essay_set, essays, scores)
 
-    train_result = train_models(train_essays=X_train, 
-                                train_scores=y_train, 
-                                featurizers=featurizers, 
-                                verbose=True, 
-                                essay_set=essay_set)
-    predictions = predict(test_set=X_test, 
-                          featurizers=featurizers, 
-                          vectorizer=train_result['vectorizer'], 
-                          scaler=train_result['scaler'], 
-                          model=train_result['model'],
-                          essay_set=essay_set)
+      # print('true | predicted')
+      # for i, prediction in enumerate(predictions):
+      #   print('%d | %d' % (y_test[i], prediction))
 
-    # print('true | predicted')
-    # for i, prediction in enumerate(predictions):
-    #   print('%d | %d' % (y_test[i], prediction))
-
-    accuracy = get_accuracy(y_test, predictions)
-    cohen_kappa = cohen_kappa_score(y_test, predictions)
-    print('Accuracy for set %d: %f' % (essay_set, accuracy))
-    print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa))  
-    metrics.append((accuracy, cohen_kappa))
+      accuracy = get_accuracy(y_test, predictions)
+      cohen_kappa = cohen_kappa_score(y_test, predictions)
+      print('Accuracy for set %d: %f' % (essay_set, accuracy))
+      print('Cohen Kappa score for set %d: %f' % (essay_set, cohen_kappa)) 
+      metrics_index = essay_set - 1 
+      metrics[metrics_index][0].append(accuracy)
+      metrics[metrics_index][1].append(cohen_kappa)
 
   print_metrics_with_accuracy(metrics)
 

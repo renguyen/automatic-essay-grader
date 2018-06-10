@@ -1,5 +1,6 @@
 # Contains various feature extractors to be used across different models.
 
+import nltk
 from nltk import pos_tag
 from nltk.tokenize import sent_tokenize
 from nltk.corpus import stopwords
@@ -9,6 +10,7 @@ import string
 import pdb
 import csv
 import os
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Removes the UnicodeDecodeError when using NLTK sent_tokenize
 reload(sys)
@@ -22,14 +24,14 @@ with open('vocab.txt', mode='rt') as f:
   for line in csv.reader(f, delimiter='\t'):
     vocab_words.append(line[0])
 
-
+# Read essay prompts for each set
 essay_prompts = []
 with open('prompts.txt', mode='rt') as f: 
-  for line in csv.reader(f, delimiter='\t'):
-    essay_prompts.append(line)
+  essay_prompts = f.readlines()
 
-#print(essay_prompts)
-
+###########################################################################
+#                               FEATURIZERS                               #
+###########################################################################
 
 def word_count_featurizer(feature_counter, essay, essay_set=None):
   '''
@@ -149,10 +151,45 @@ def high_vocab_count_featurizer(feature_counter, essay, essay_set=None):
       feature_counter[word] += 1
       #print('%s | %d' % (word, feature_counter[word]))
 
+###########################################################################
+# ESSAY PROMPT SIMILARITY FEATURIZER AND HELPER FUNCTIONS
+# from https://stackoverflow.com/questions/8897593/similarity-between-two-text-documents
+
+def stem_tokens(tokens):
+  return [stemmer.stem(item) for item in tokens]
+
+def normalize(text):
+  '''remove punctuation, lowercase, stem'''
+  return stem_tokens(nltk.word_tokenize(text.lower().translate(remove_punctuation_map)))
+
+stemmer = nltk.stem.porter.PorterStemmer()
+remove_punctuation_map = dict((ord(char), None) for char in string.punctuation)
+vectorizer = TfidfVectorizer(tokenizer=normalize, stop_words='english')
+
 def essay_prompt_similarity_featurizer(feature_counter, essay, essay_set=None):
   '''
   Adds score for how similar an essay is to the score.
   '''
-  print(essay_set)
-  feature_counter['tfidf'] = 3
-  #pass
+  essay_prompt = essay_prompts[essay_set-1]
+  tfidf = vectorizer.fit_transform([essay_prompt, essay])
+  cosine_sim = ((tfidf * tfidf.T).A)[0,1]
+  feature_counter['essay_prompt_similarity'] = cosine_sim
+
+###########################################################################
+
+def unique_word_count_featurizer(feature_counter, essay, essay_set=None):
+  '''
+  Adds number of unique words in the essay.
+  '''
+  essay_without_punctuation = essay.translate(None, string.punctuation)
+  words = essay_without_punctuation.split()
+  feature_counter['unique_word_count'] = len(set(words))
+
+def quotes_count_featurizer(feature_counter, essay, essay_set=None):
+  '''
+  Adds number of times the writer quotes someone.
+  '''
+  feature_counter['question_mark_count'] = essay.count('"') / 2
+
+def bag_of_words_featurizer(feature_counter, essay, essay_set=None): 
+  pass 

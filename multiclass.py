@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 import datetime
 import numpy as np 
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.multiclass import OneVsRestClassifier
+from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.metrics import cohen_kappa_score
@@ -55,7 +55,7 @@ def train_models(
         train_scores,
         featurizers,
         essay_set,
-        model_factory=lambda: OneVsRestClassifier(LinearSVC(random_state=0)),
+        model_factory=lambda: OneVsOneClassifier(LinearSVC(random_state=0)),
         verbose=True):
   if verbose: 
     print('Featurizing')
@@ -115,7 +115,7 @@ def run_model(essay_set, essays, scores):
                   pos_ngram_featurizer,
                   high_vocab_count_featurizer,
                   essay_prompt_similarity_featurizer,
-                  unique_word_count_featurizer,
+                  # unique_word_count_featurizer,
                   quotes_count_featurizer,
                   bag_of_words_featurizer,
                   bag_of_pos_featurizer,

@@ -65,7 +65,7 @@ def sentence_count_featurizer(feature_counter, essay, essay_set=None):
       feature_counter['sentence_len_%d' % sentence_len] += 1
       min_len = min(min_len, sentence_len)
       max_len = max(max_len, sentence_len)
-    feature_counter['sentence_len_range'] = max_len - min_len
+    # feature_counter['sentence_len_range'] = max_len - min_len
   except UnicodeDecodeError, e:
     print('error parsing sentences for essay:\n %s' % essay)
 
@@ -136,7 +136,7 @@ def ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
 
     feature_counter[key.strip()] += 1
 
-def pos_ngram_featurizer(feature_counter, essay, ngrams=2, essay_set=None):
+def pos_ngram_featurizer(feature_counter, essay, ngrams=3, essay_set=None):
   '''
   Adds part of speech ngrams as a feature. 
   '''
@@ -161,7 +161,7 @@ def high_vocab_count_featurizer(feature_counter, essay, essay_set=None):
   essay_without_punctuation = essay.translate(None, string.punctuation)
   for word in essay_without_punctuation.split():
     if word in vocab_words:
-      feature_counter[word] += 1
+      feature_counter['high_vocab_count'] += 1
       #print('%s | %d' % (word, feature_counter[word]))
 
 ###########################################################################

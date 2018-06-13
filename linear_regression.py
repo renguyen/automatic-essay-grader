@@ -14,7 +14,7 @@ from tqdm import tqdm
 from util import *
 from featurizers import *
 
-LINEAR_REG_NUM_RUNS = 1
+LINEAR_REG_NUM_RUNS = 5
 
 def featurize_datasets(
       essays,

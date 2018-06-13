@@ -23,6 +23,7 @@ vocab_words = []
 with open('vocab.txt', mode='rt') as f:
   for line in csv.reader(f, delimiter='\t'):
     vocab_words.append(line[0])
+vocab_words = set(vocab_words)
 
 # Read essay prompts for each set
 essay_prompts = []

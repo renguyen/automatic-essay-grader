@@ -16,7 +16,7 @@ from tqdm import tqdm
 from featurizers import *
 from util import *
 
-MULTICLASS_NUM_RUNS = 1
+MULTICLASS_NUM_RUNS = 5
 
 def featurize_datasets(
       essays,
